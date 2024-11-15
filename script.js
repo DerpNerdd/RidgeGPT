@@ -1,5 +1,6 @@
 import chaiApi from '@api/chai-api';
 
+// Authenticate with the Chai API
 chaiApi.auth('8527a3fdd9e44921b07200be713052f0');
 
 const chatBox = document.getElementById('chat-box');
@@ -7,6 +8,7 @@ const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 
 const appendMessage = (role, content) => {
+    console.log(`Appending message: ${role === 'user' ? 'User' : 'Bot'}: ${content}`);
     const msg = document.createElement('div');
     msg.classList.add(role === 'user' ? 'user-message' : 'bot-message');
     msg.textContent = content;
@@ -15,20 +17,29 @@ const appendMessage = (role, content) => {
 };
 
 const chatWithBot = async (userMessage) => {
+    console.log('User message:', userMessage);
     appendMessage('user', userMessage);
-    
+
     try {
+        console.log('Sending message to Chai API...');
         const response = await chaiApi.createChatCompletion({
             model: 'chai_v1',
             messages: [{ role: 'user', content: userMessage }],
             max_tokens: 500,
             temperature: 1
         });
-        
+
+        if (!response || !response.data) {
+            console.error('No data received from the API');
+            appendMessage('bot', 'Sorry, there was no valid response.');
+            return;
+        }
+
+        console.log('Received response from Chai API:', response.data);
         const botResponse = response.data;
         appendMessage('bot', botResponse);
     } catch (err) {
-        console.error('Error:', err);
+        console.error('Error communicating with Chai API:', err);
         appendMessage('bot', 'Sorry, there was an error.');
     }
 };
@@ -37,8 +48,11 @@ const chatWithBot = async (userMessage) => {
 sendBtn.addEventListener('click', () => {
     const message = userInput.value.trim();
     if (message) {
+        console.log('Sending user input:', message);
         chatWithBot(message);
         userInput.value = ''; // Clear input field
+    } else {
+        console.log('Empty message, not sending.');
     }
 });
 

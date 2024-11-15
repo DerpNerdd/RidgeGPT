@@ -1,14 +1,15 @@
 {
   "dependencies": {
-    "@api/chai-api": "file:.api/apis/chai-api"
+    "@api/chai-api": "file:.api/apis/chai-api",
+    "express": "^4.21.1"
   },
   "name": "chaibot",
   "version": "1.0.0",
   "description": "hehehe hah",
   "main": "script.js",
-  "devDependencies": {},
   "scripts": {
-    "start": "node script.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "keywords": [
     "api",
@@ -16,5 +17,8 @@
     "ai"
   ],
   "author": "Alan Sanchez",
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
 }
