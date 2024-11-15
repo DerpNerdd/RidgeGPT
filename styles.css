@@ -1,47 +1,187 @@
+/* General body styling */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #e0eafc, #cfdef3);
+    margin: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #f0f0f0;
-    margin: 0;
 }
 
+/* Chat container styling */
 .chat-container {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    padding: 20px;
-    width: 400px;
+    width: 450px;
+    max-height: 80vh;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header styling */
+h1 {
     text-align: center;
-}
-
-.chat-box {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    height: 300px;
-    overflow-y: auto;
-    margin-bottom: 10px;
-    padding: 10px;
-}
-
-input[type="text"] {
-    width: 70%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-button {
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    background-color: #28a745;
+    background: linear-gradient(90deg, #6a11cb, #2575fc);
     color: white;
+    margin: 0;
+    padding: 20px;
+    font-size: 1.5em;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Chat box styling */
+.chat-box {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: #f9f9f9;
+    scrollbar-width: thin;
+    scrollbar-color: #0078d7 #e0eafc;
+}
+
+.chat-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+    background: #0078d7;
+    border-radius: 10px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+    background: #e0eafc;
+}
+
+.user-message-container,
+.bot-message-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* User message specific fixes */
+.user-message-container {
+    align-self: flex-end;
+    max-width: 75%;
+}
+
+/* Bot message specific fixes */
+.bot-message-container {
+    align-self: flex-start;
+    max-width: 75%;
+}
+
+/* Ensure messages and their containers are distinct */
+.user-message,
+.bot-message {
+    padding: 12px 15px;
+    border-radius: 18px;
+    word-wrap: break-word;
+    font-size: 14px;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease-in-out;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Unique gradient for user message */
+.user-message {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+/* Unique styling for bot message */
+.bot-message {
+    background: #f1f0f0;
+    color: #333;
+    border-bottom-left-radius: 5px;
+}
+
+
+/* Animation for messages */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Input container styling */
+.input-container {
+    display: flex;
+    border-top: 1px solid #ddd;
+    background: #ffffff;
+    padding: 10px;
+}
+
+/* Input field styling */
+input[type="text"] {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease-in-out;
+}
+
+input[type="text"]:focus {
+    border-color: #6a11cb;
+    box-shadow: 0 0 5px rgba(106, 17, 203, 0.3);
+}
+
+/* Button styling */
+button {
+    margin-left: 10px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
     cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 button:hover {
-    background-color: #218838;
+    background: linear-gradient(135deg, #5b0ebb, #1d63d0);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(106, 17, 203, 0.2);
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+/* Regenerate button styling */
+.regenerate-btn {
+    padding: 5px;
+    font-size: 18px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.regenerate-btn i {
+    color: #6a11cb;
+    font-size: 18px;
+}
+
+.regenerate-btn:hover i {
+    color: #2575fc;
+    transform: rotate(360deg);
 }

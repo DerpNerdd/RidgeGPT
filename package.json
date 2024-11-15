@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "@api/chai-api": "file:.api/apis/chai-api",
+    "axios": "^1.7.7",
+    "body-parser": "^1.20.3",
     "express": "^4.21.1"
   },
   "name": "chaibot",
