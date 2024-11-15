@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "@api/chai-api": "file:.api/apis/chai-api"
+  },
+  "name": "chaibot",
+  "version": "1.0.0",
+  "description": "hehehe hah",
+  "main": "script.js",
+  "devDependencies": {},
+  "scripts": {
+    "start": "node script.js"
+  },
+  "keywords": [
+    "api",
+    "chai",
+    "ai"
+  ],
+  "author": "Alan Sanchez",
+  "license": "GPL-3.0"
+}

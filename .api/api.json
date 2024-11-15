@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "apis": [
+    {
+      "identifier": "chai-api",
+      "source": "@chai-api/v1.0#1ac9fm20rsuft",
+      "integrity": "sha512-AyltqmN+Vt+fPFZuL/CPOjA6dTUbpFoFxp9DOKiB4dUKVhjXXvsnDvYbsG8GDqs7CcrGIHc6DYL5ZQPilfu/wA==",
+      "installerVersion": "6.1.2"
+    }
+  ]
+}
