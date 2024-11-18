@@ -1,38 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
+    <title>ChatGPT Clone</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot</title>
+    <!-- Google Fonts for styling -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
+    <!-- Highlight.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="styles.css">
-    <style>
-        /* Additional styles for the mini console */
-        #mini-console {
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-            padding: 10px;
-            margin-top: 10px;
-            height: 150px;
-            overflow-y: auto;
-            font-family: monospace;
-            white-space: pre; /* Preserve whitespace formatting */
-        }
-    </style>
 </head>
-
 <body>
     <div class="chat-container">
-        <h1>Chat with the Bot</h1>
-        <div id="chat-box" class="chat-box"></div>
-        <div class="input-container">
-            <input type="text" id="user-input" placeholder="Type your message here..." />
-            <button id="send-btn">Send</button>
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <button class="new-chat-btn">+ New Chat</button>
+            <!-- Additional sidebar content can be added here -->
         </div>
-        <h2>Mini Console</h2>
-        <div id="mini-console"></div>
+        <!-- Main Chat Area -->
+        <div class="main">
+            <div class="chat-content">
+                <div id="chat-box" class="chat-box">
+                    <!-- Chat messages will be appended here -->
+                </div>
+                <!-- Input Area -->
+                <div class="input-area">
+                    <form id="chat-form">
+                        <textarea id="user-input" placeholder="Send a message..."></textarea>
+                        <button id="send-btn" type="submit">
+                            <!-- Send Icon -->
+                            <svg viewBox="0 0 24 24" class="send-icon">
+                                <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+                            </svg>
+                        </button>
+                    </form>
+                    <p class="footer-text">ChatGPT Clone - Not affiliated with OpenAI</p>
+                </div>
+            </div>
+        </div>
     </div>
+    <!-- Highlight.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <!-- Marked.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <!-- Script -->
     <script src="script.js"></script>
 </body>
-
 </html>
