@@ -1,5 +1,5 @@
 
-# ChatGPT
+# RidgeGPT
 
 Due to school blocking ChatGPT, I have implemented the API key and made a fully functioning replica of the website but now on my local host, where it can not be restricted.
 
@@ -9,7 +9,7 @@ Due to school blocking ChatGPT, I have implemented the API key and made a fully 
 Clone project using git
 
 ```bash
-git clone https://github.com/DerpNerdd/ChatGPT.git
+git clone https://github.com/DerpNerdd/RidgeGPT.git
 cd ChatGPT
 ```
 
