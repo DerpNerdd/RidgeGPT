@@ -1,115 +1,84 @@
+// Get references to the necessary DOM elements
 const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
+const miniConsole = document.getElementById('mini-console'); // Mini console log div
 
-let currentRegenerateButton = null; // Track the current regenerate button
+let canSendMessage = true; // Flag to control sending messages
 
-// Function to format text (italic and bold)
-const formatText = (text) => {
-    // Replace **text** with <b>text</b>
-    text = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-    // Replace *text* with <i>text</i>
-    text = text.replace(/\*(.*?)\*/g, '<i>$1</i>');
-    return text;
-};
-
-
-const appendMessage = (role, content, userMessage = null) => {
-    const container = document.createElement('div');
-    container.classList.add(role === 'user' ? 'user-message-container' : 'bot-message-container');
-
+// Function to append messages to the chat box
+const appendMessage = (role, content) => {
     const msg = document.createElement('div');
-    msg.classList.add(role === 'user' ? 'user-message' : 'bot-message');
-
-    // Apply text formatting
-    msg.innerHTML = formatText(content);
-
-    container.appendChild(msg);
-
-    // Add "Regenerate" button only for the most recent bot response
-    if (role === 'bot' && userMessage) {
-        if (currentRegenerateButton) {
-            currentRegenerateButton.remove();
-        }
-
-        const regenerateBtn = document.createElement('button');
-        regenerateBtn.classList.add('regenerate-btn');
-        regenerateBtn.innerHTML = '<i class="fa fa-refresh"></i>'; // Font Awesome icon
-        regenerateBtn.addEventListener('click', () => regenerateResponse(userMessage, msg));
-        container.appendChild(regenerateBtn);
-
-        currentRegenerateButton = regenerateBtn;
-    }
-
-    chatBox.appendChild(container);
+    msg.classList.add(role === 'user' ? 'user-message' : 'bot-message'); // Ensure consistent styling
+    msg.textContent = content;
+    chatBox.appendChild(msg);
     chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom
 };
-// Function to regenerate bot response
-const regenerateResponse = async (userMessage, msgElement) => {
-    console.log('Regenerating response for:', userMessage);
 
-    const options = {
-        method: 'POST',
-        url: 'https://api.chai-research.com/v1/chat/completions',
-        headers: {
-            accept: 'application/json',
-            'content-type': 'application/json',
-            'X-API_KEY': '8527a3fdd9e44921b07200be713052f0' // Replace with your actual API key
-        },
-        data: {
-            model: 'chai_v1',
-            messages: [{ role: 'user', content: userMessage }],
-            role: 'system',
-                    content: 'You are a cheerful and humorous chatbot who always tries to brighten the user\'s day with positivity and witty comments.',
-            max_tokens: 500,
-            temperature: 0.5
-        }
-    };
-
-    try {
-        const response = await axios.request(options);
-        console.log('New API response:', response.data);
-        const newBotResponse = response.data.choices[0].message.content; // Adjust based on response structure
-
-        // Update the bot's message text
-        msgElement.textContent = newBotResponse;
-    } catch (err) {
-        console.error('Error regenerating response:', err);
-        msgElement.textContent = 'Sorry, there was an error. Try again later.';
-    }
+// Function to log messages to the mini-console
+const logToMiniConsole = (message) => {
+    miniConsole.textContent += `${message}\n`; // Append the message to the mini-console
+    miniConsole.scrollTop = miniConsole.scrollHeight; // Scroll to the bottom
 };
 
-// Function to handle chat with the bot
+// Function to send message to the server, which will communicate with OpenAI API
 const chatWithBot = async (userMessage) => {
-    console.log('User message:', userMessage);
-    appendMessage('user', userMessage);
+    // Check if the message can be sent
+    if (!canSendMessage) {
+        logToMiniConsole("Please wait before sending another message.");
+        return;
+    }
 
-    const options = {
-        method: 'POST',
-        url: 'https://api.chai-research.com/v1/chat/completions',
-        headers: {
-            accept: 'application/json',
-            'content-type': 'application/json',
-            'X-API_KEY': '8527a3fdd9e44921b07200be713052f0' // Replace with your actual API key
-        },
-        data: {
-            model: 'chai_v1',
-            messages: [{ role: 'user', content: userMessage }],
-            role: 'system',
-                    content: 'You are a cheerful and humorous chatbot who always tries to brighten the user\'s day with positivity and witty comments.',
-            max_tokens: 500,
-            temperature: 0.5
-        }
-    };
+    canSendMessage = false; // Prevent sending more messages
+    setTimeout(() => {
+        canSendMessage = true; // Allow sending after 5 seconds
+    }, 5000); // Delay of 5 seconds
+
+    console.log('User message received:', userMessage);
+    appendMessage('user', userMessage); // Display user's message
+    logToMiniConsole(`User: ${userMessage}`); // Log to mini console
 
     try {
-        const response = await axios.request(options);
-        console.log('API response:', response.data);
-        const botResponse = response.data.choices[0].message.content; // Adjust based on response structure
-        appendMessage('bot', botResponse, userMessage);
+        console.log('Sending message to the server...');
+        logToMiniConsole("Sending message to the server...");
+
+        // Fetch request to your server
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                messages: [{ role: 'user', content: userMessage }]
+            })
+        });
+
+        if (!response.ok) {
+            console.error('HTTP error! Status:', response.status);
+            const errorText = await response.text();
+            console.error('Error Response Body:', errorText);
+            logToMiniConsole(`Error: HTTP error! Status: ${response.status}\nBody: ${errorText}`);
+            appendMessage('bot', 'Sorry, there was an error with the request.');
+            return;
+        }
+
+        const data = await response.json(); // Parse the JSON response
+        console.log('Received response from server:', data);
+
+        if (data.choices && data.choices.length > 0) {
+            const botResponse = data.choices[0].message.content;
+            appendMessage('bot', botResponse);
+            logToMiniConsole(`Bot: ${botResponse}`); // Log bot's response
+            console.log('Bot response appended:', botResponse);
+        } else {
+            console.error('Unexpected response structure:', data);
+            logToMiniConsole(`Error: Unexpected response structure: ${JSON.stringify(data)}`);
+            appendMessage('bot', 'Sorry, I received an unexpected response.');
+        }
     } catch (err) {
-        console.error('Error communicating with Chai API:', err);
-        appendMessage('bot', 'Sorry, there was an error.');
+        console.error('Error communicating with the server:', err);
+        logToMiniConsole(`Error: ${err.message}`);
+        appendMessage('bot', 'Sorry, there was an error during communication.');
     }
 };
 
@@ -117,17 +86,19 @@ const chatWithBot = async (userMessage) => {
 sendBtn.addEventListener('click', () => {
     const message = userInput.value.trim();
     if (message) {
-        chatWithBot(message);
+        console.log('Sending user input:', message);
+        chatWithBot(message); // Call function to send user's message to the bot
         userInput.value = ''; // Clear input field
     } else {
         console.log('Empty message, not sending.');
+        logToMiniConsole('Attempted to send an empty message.');
     }
 });
 
 // Optional: Send message on Enter key press
 userInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
-        sendBtn.click();
+        console.log('Enter key pressed, sending message...');
+        sendBtn.click(); // Trigger send button click
     }
 });
-

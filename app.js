@@ -10,37 +10,38 @@ const PORT = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname)));
 app.use(bodyParser.json()); // Parse JSON bodies
 
-// Proxy route for chat API
-app.post('/chat', async (req, res) => {
-    console.log('Chat endpoint hit with message:', req.body);
-    const apiKey = '8527a3fdd9e44921b07200be713052f0'; // Replace with your actual API key
+const apiKey = "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"
+
+// Route for homepage
+app.get('/', (req, res) => {
+    console.log('Homepage requested');
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Proxy route for ChatGPT API
+app.post('/api/chat', async (req, res) => {
+    console.log('Chat endpoint hit with data:', req.body);
 
     try {
-        const response = await axios.post('https://api.chai-research.com/v1/chat/completions', {
-            model: 'chai_v1',
+        const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+            model: 'gpt-3.5-turbo', // Change model as needed
             messages: req.body.messages,
             max_tokens: 500,
             temperature: 1
         }, {
             headers: {
-                'X-API-KEY': apiKey,
+                'Authorization': `Bearer ${apiKey}`,
                 'Content-Type': 'application/json'
             }
         });
 
-        console.log('Received response from Chai API:', response.data);
-        res.json(response.data); // Send response back to the client
+        console.log('Received response from OpenAI API:', response.data);
+        res.json(response.data);
     } catch (error) {
-        console.error('Error communicating with Chai API:', error.response?.data || error.message || error);
-        res.status(500).send('Error communicating with Chai API');
+        // Log detailed errors for troubleshooting
+        console.error('Error communicating with OpenAI API:', error.response ? error.response.data : error.message);
+        res.status(500).send('Error communicating with OpenAI API: ' + (error.response ? JSON.stringify(error.response.data) : error.message));
     }
-});
-
-
-// Route for the homepage
-app.get('/', (req, res) => {
-    console.log('Homepage requested');
-    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 // Start the server
