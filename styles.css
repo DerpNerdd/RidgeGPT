@@ -15,7 +15,7 @@ body {
     max-height: 80vh;
     background: #ffffff;
     border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -42,8 +42,6 @@ h1 {
     flex-direction: column;
     gap: 15px;
     background: #f9f9f9;
-    scrollbar-width: thin;
-    scrollbar-color: #0078d7 #e0eafc;
 }
 
 .chat-box::-webkit-scrollbar {
@@ -87,23 +85,19 @@ h1 {
     font-size: 14px;
     line-height: 1.5;
     animation: fadeIn 0.3s ease-in-out;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Unique gradient for user message */
 .user-message {
     background: linear-gradient(135deg, #6a11cb, #2575fc);
     color: white;
-    border-bottom-right-radius: 5px;
 }
 
 /* Unique styling for bot message */
 .bot-message {
     background: #f1f0f0;
     color: #333;
-    border-bottom-left-radius: 5px;
 }
-
 
 /* Animation for messages */
 @keyframes fadeIn {

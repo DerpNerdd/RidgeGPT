@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,17 +20,19 @@
         }
     </style>
 </head>
+
 <body>
     <div class="chat-container">
         <h1>Chat with the Bot</h1>
         <div id="chat-box" class="chat-box"></div>
-        <input type="text" id="user-input" placeholder="Type your message here..." />
-        <button id="send-btn">Send</button>
-        
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Type your message here..." />
+            <button id="send-btn">Send</button>
+        </div>
         <h2>Mini Console</h2>
         <div id="mini-console"></div>
     </div>
-
     <script src="script.js"></script>
 </body>
+
 </html>
