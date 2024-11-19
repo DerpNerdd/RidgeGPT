@@ -1,11 +1,16 @@
+// script.js
+
 // Get references to the necessary DOM elements
 const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
 const chatForm = document.getElementById('chat-form');
 const sendBtn = document.getElementById('send-btn');
+const newChatBtn = document.getElementById('new-chat-btn');
+const chatListContainer = document.getElementById('chat-list');
 
 let canSendMessage = true; // Flag to control sending messages
 let conversation = []; // To store the conversation history
+let currentChatId = null; // To track the current chat ID
 
 // Configure Marked.js
 marked.setOptions({
@@ -17,6 +22,124 @@ marked.setOptions({
             return hljs.highlightAuto(code).value;
         }
     }
+});
+
+// Load chats on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadChats();
+});
+
+// Function to load chats
+async function loadChats() {
+    try {
+        const response = await fetch('/api/chats');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                const chats = data.chats;
+                displayChatList(chats);
+                if (chats.length > 0) {
+                    // Select the most recent chat
+                    currentChatId = chats[0]._id;
+                    await loadChat(currentChatId);
+                } else {
+                    // No chats available, create a new one
+                    await createNewChat();
+                }
+            }
+        } else {
+            console.error('Failed to load chats');
+        }
+    } catch (err) {
+        console.error('Error loading chats:', err);
+    }
+}
+
+// Function to display chat list
+function displayChatList(chats) {
+    chatListContainer.innerHTML = '';
+    chats.forEach(chat => {
+        const chatItem = document.createElement('div');
+        chatItem.classList.add('chat-item');
+        chatItem.textContent = chat.title || 'Untitled Chat';
+        chatItem.dataset.chatId = chat._id;
+        if (chat._id === currentChatId) {
+            chatItem.classList.add('active');
+        }
+        chatItem.addEventListener('click', async () => {
+            currentChatId = chat._id;
+            highlightActiveChat();
+            await loadChat(currentChatId);
+        });
+        chatListContainer.appendChild(chatItem);
+    });
+}
+
+// Function to highlight the active chat
+function highlightActiveChat() {
+    const chatItems = document.querySelectorAll('.chat-item');
+    chatItems.forEach(item => {
+        if (item.dataset.chatId === currentChatId) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+}
+
+// Function to load a specific chat
+async function loadChat(chatId) {
+    try {
+        const response = await fetch(`/api/chats/${chatId}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                const chat = data.chat;
+                conversation = chat.messages;
+                displayConversation(conversation);
+            }
+        } else {
+            console.error('Failed to load chat messages');
+        }
+    } catch (err) {
+        console.error('Error loading chat messages:', err);
+    }
+}
+
+// Function to display conversation
+function displayConversation(conversation) {
+    chatBox.innerHTML = '';
+    conversation.forEach(message => {
+        appendMessage(message.role, message.content);
+    });
+}
+
+// Function to create a new chat
+async function createNewChat() {
+    try {
+        const response = await fetch('/api/new-chat', {
+            method: 'POST',
+        });
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                currentChatId = data.chatId;
+                conversation = [];
+                chatBox.innerHTML = '';
+                await loadChats(); // Refresh chat list
+                console.log('New chat started with ID:', currentChatId);
+            }
+        } else {
+            console.error('Failed to create new chat');
+        }
+    } catch (err) {
+        console.error('Error creating new chat:', err);
+    }
+}
+
+// Event listener for the "New Chat" button
+newChatBtn.addEventListener('click', async () => {
+    await createNewChat();
 });
 
 // Function to append messages to the chat box without typing animation
@@ -31,35 +154,37 @@ const appendMessage = (role, content) => {
     messageContent.innerHTML = marked.parse(content);
 
     // Handle code blocks to add copy buttons
-    const codeBlocks = messageContent.querySelectorAll('pre code');
-    codeBlocks.forEach((codeBlock) => {
-        // Wrap the code block in a div
-        const codeContainer = document.createElement('div');
-        codeContainer.classList.add('code-container');
+    const codeBlocks = messageContent.querySelectorAll('pre');
+    codeBlocks.forEach((preBlock) => {
+        const codeBlock = preBlock.querySelector('code');
+        if (codeBlock) {
+            // Wrap the code block in a div
+            const codeContainer = document.createElement('div');
+            codeContainer.classList.add('code-container');
 
-        // Create a copy button
-        const copyButton = document.createElement('button');
-        copyButton.classList.add('copy-button');
-        copyButton.textContent = 'Copy';
+            // Create a copy button
+            const copyButton = document.createElement('button');
+            copyButton.classList.add('copy-button');
+            copyButton.textContent = 'Copy';
 
-        // Add copy functionality
-        copyButton.addEventListener('click', () => {
-            // Copy code to clipboard
-            navigator.clipboard.writeText(codeBlock.textContent).then(() => {
-                copyButton.textContent = 'Copied!';
-                setTimeout(() => {
-                    copyButton.textContent = 'Copy';
-                }, 2000);
+            // Add copy functionality
+            copyButton.addEventListener('click', () => {
+                // Copy code to clipboard
+                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                    copyButton.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyButton.textContent = 'Copy';
+                    }, 2000);
+                });
             });
-        });
 
-        // Move the code block into the container
-        const pre = codeBlock.parentNode;
-        codeContainer.appendChild(copyButton);
-        codeContainer.appendChild(pre.cloneNode(true));
+            // Move the code block into the container
+            codeContainer.appendChild(copyButton);
+            codeContainer.appendChild(preBlock.cloneNode(true));
 
-        // Replace the original pre element with the container
-        pre.parentNode.replaceChild(codeContainer, pre);
+            // Replace the original pre element with the container
+            preBlock.parentNode.replaceChild(codeContainer, preBlock);
+        }
     });
 
     messageContainer.appendChild(messageContent);
@@ -100,6 +225,7 @@ const removeTypingIndicator = () => {
     }
 };
 
+// Function to append messages with typing animation
 const appendMessageWithTyping = (role, content) => {
     const messageContainer = document.createElement('div');
     messageContainer.classList.add('message', role);
@@ -151,42 +277,43 @@ const appendMessageWithTyping = (role, content) => {
                 const elementClone = node.cloneNode(false);
                 container.appendChild(elementClone);
 
-                // If the element is a code block, display it immediately
-                if (node.tagName.toLowerCase() === 'pre') {
+                // If the element is a code block or image, display it immediately
+                if (node.tagName.toLowerCase() === 'pre' || node.tagName.toLowerCase() === 'img') {
                     elementClone.innerHTML = node.innerHTML;
                     chatBox.scrollTop = chatBox.scrollHeight;
 
                     // Handle code blocks to add copy buttons
-                    const codeBlocks = elementClone.querySelectorAll('pre code');
-                    codeBlocks.forEach((codeBlock) => {
-                        // Wrap the code block in a div
-                        const codeContainer = document.createElement('div');
-                        codeContainer.classList.add('code-container');
+                    if (node.tagName.toLowerCase() === 'pre') {
+                        const codeBlocks = elementClone.querySelectorAll('code');
+                        codeBlocks.forEach((codeBlock) => {
+                            // Wrap the code block in a div
+                            const codeContainer = document.createElement('div');
+                            codeContainer.classList.add('code-container');
 
-                        // Create a copy button
-                        const copyButton = document.createElement('button');
-                        copyButton.classList.add('copy-button');
-                        copyButton.textContent = 'Copy';
+                            // Create a copy button
+                            const copyButton = document.createElement('button');
+                            copyButton.classList.add('copy-button');
+                            copyButton.textContent = 'Copy';
 
-                        // Add copy functionality
-                        copyButton.addEventListener('click', () => {
-                            // Copy code to clipboard
-                            navigator.clipboard.writeText(codeBlock.textContent).then(() => {
-                                copyButton.textContent = 'Copied!';
-                                setTimeout(() => {
-                                    copyButton.textContent = 'Copy';
-                                }, 2000);
+                            // Add copy functionality
+                            copyButton.addEventListener('click', () => {
+                                // Copy code to clipboard
+                                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                                    copyButton.textContent = 'Copied!';
+                                    setTimeout(() => {
+                                        copyButton.textContent = 'Copy';
+                                    }, 2000);
+                                });
                             });
+
+                            // Move the code block into the container
+                            codeContainer.appendChild(copyButton);
+                            codeContainer.appendChild(codeBlock.parentNode.cloneNode(true));
+
+                            // Replace the original code element with the container
+                            codeBlock.parentNode.parentNode.replaceChild(codeContainer, codeBlock.parentNode);
                         });
-
-                        // Move the code block into the container
-                        const pre = codeBlock.parentNode;
-                        codeContainer.appendChild(copyButton);
-                        codeContainer.appendChild(pre.cloneNode(true));
-
-                        // Replace the original pre element with the container
-                        pre.parentNode.replaceChild(codeContainer, pre);
-                    });
+                    }
 
                     processNode(); // Move to the next node
                 } else {
@@ -205,28 +332,13 @@ const appendMessageWithTyping = (role, content) => {
     animateNodes(parsedHTML, messageContent);
 };
 
-// Function to show the "Continue" button
-const showContinueButton = () => {
-    const continueButton = document.createElement('button');
-    continueButton.textContent = 'Continue';
-    continueButton.classList.add('continue-button');
-
-    // Append the button to the chat box
-    chatBox.appendChild(continueButton);
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    continueButton.addEventListener('click', () => {
-        // Remove the button after clicking
-        continueButton.remove();
-
-        // Send a request to continue the conversation
-        chatWithBot('', true); // Pass empty user message, isContinuation = true
-    });
-};
-
 // Function to send message to the server
 const chatWithBot = async (userMessage, isContinuation = false) => {
-    // Check if the message can be sent
+    if (!currentChatId) {
+        console.error('No chat selected.');
+        return;
+    }
+
     if (!canSendMessage) {
         console.log("Please wait before sending another message.");
         return;
@@ -237,15 +349,8 @@ const chatWithBot = async (userMessage, isContinuation = false) => {
         canSendMessage = true; // Allow sending after 5 seconds
     }, 5000); // Delay of 5 seconds
 
-    if (!isContinuation) {
-        console.log('User message received:', userMessage);
-        appendMessage('user', userMessage); // Display user's message
-
-        // Add user's message to conversation history
-        conversation.push({ role: 'user', content: userMessage });
-    } else {
-        console.log('Continuing the bot\'s response...');
-    }
+    console.log('User message received:', userMessage);
+    appendMessage('user', userMessage); // Display user's message
 
     // Show typing indicator
     showTypingIndicator();
@@ -260,7 +365,8 @@ const chatWithBot = async (userMessage, isContinuation = false) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                messages: conversation, // Send the entire conversation
+                chatId: currentChatId,
+                message: userMessage
             })
         });
 
@@ -279,30 +385,23 @@ const chatWithBot = async (userMessage, isContinuation = false) => {
         const data = await response.json(); // Parse the JSON response
         console.log('Received response from server:', data);
 
-        if (data.choices && data.choices.length > 0) {
-            const botResponse = data.choices[0].message.content;
-
+        if (data.success) {
+            const assistantMessage = data.message;
             // Remove typing indicator before appending message
             removeTypingIndicator();
 
             // Append bot response with typing animation
-            appendMessageWithTyping('bot', botResponse);
+            appendMessageWithTyping('bot', assistantMessage.content);
 
-            // Add bot's response to conversation history
-            conversation.push({ role: 'assistant', content: botResponse });
+            console.log('Bot response appended:', assistantMessage.content);
 
-            console.log('Bot response appended:', botResponse);
-
-            // Check if the bot's response was truncated
-            if (data.choices[0].finish_reason === 'length') {
-                // Show "Continue" button
-                showContinueButton();
-            }
+            // Reload chats to update titles if necessary
+            await loadChats();
         } else {
             // Remove typing indicator
             removeTypingIndicator();
 
-            console.error('Unexpected response structure:', data);
+            console.error('Unexpected response:', data);
             appendMessage('bot', 'Sorry, I received an unexpected response.');
         }
     } catch (err) {

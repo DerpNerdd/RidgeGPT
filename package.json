@@ -2,11 +2,16 @@
   "dependencies": {
     "@api/chai-api": "file:.api/apis/chai-api",
     "axios": "^1.7.7",
+    "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
+    "connect-mongo": "^5.1.0",
     "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
     "express": "^4.21.1",
+    "express-session": "^1.18.1",
     "highlight.js": "^11.10.0",
     "marked": "^15.0.1",
+    "mongoose": "^8.8.2",
     "openai": "^4.72.0"
   },
   "name": "chaibot",

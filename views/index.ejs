@@ -1,3 +1,4 @@
+<!-- views/index.ejs -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,20 +11,26 @@
     <!-- Highlight.js CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
     <!-- Stylesheet -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
     <div class="chat-container">
         <!-- Sidebar -->
         <div class="sidebar">
-            <button class="new-chat-btn">+ New Chat</button>
-            <!-- Additional sidebar content can be added here -->
+            <button class="new-chat-btn" id="new-chat-btn">+ New Chat</button>
+            <div id="chat-list">
+                <!-- Chat list will be populated here -->
+            </div>
+            <form action="/logout" method="POST">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+            <p class="username-display">Logged in as: <%= username %></p>
         </div>
         <!-- Main Chat Area -->
         <div class="main">
             <div class="chat-content">
                 <div id="chat-box" class="chat-box">
-                    <!-- Chat messages will be appended here -->
+                    <!-- Chat messages will be appended here by script.js -->
                 </div>
                 <!-- Input Area -->
                 <div class="input-area">
@@ -36,7 +43,7 @@
                             </svg>
                         </button>
                     </form>
-                    <p class="footer-text">ChatGPT Clone - Not affiliated with OpenAI</p>
+                    <p class="footer-text">RidgeGPT - Not affiliated with OpenAI</p>
                 </div>
             </div>
         </div>
@@ -46,6 +53,6 @@
     <!-- Marked.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
     <!-- Script -->
-    <script src="script.js"></script>
+    <script src="/script.js"></script>
 </body>
 </html>
