@@ -143,8 +143,7 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     const response = await axios.post('https://api.openai.com/v1/chat/completions', {
       model: 'gpt-4', // Change model as needed
       messages: chat.messages.map(msg => ({ role: msg.role, content: msg.content })),
-      max_tokens: 1000,
-      temperature: 1,
+      temperature: 0.6,
     }, {
       headers: {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`, // Use API key from .env
