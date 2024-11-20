@@ -128,7 +128,7 @@ function displayChatList(chats) {
 
             const chatTitle = document.createElement('div');
             chatTitle.classList.add('chat-title');
-            chatTitle.textContent = chat.title || 'Untitled Chat';
+            chatTitle.textContent = chat.title || 'New Chat';
 
             const chatOptionsBtn = document.createElement('button');
             chatOptionsBtn.classList.add('chat-options-btn');
@@ -523,7 +523,7 @@ function animateChatTitle(chatId, fullTitle) {
 // Function to check if chat has a title locally
 function chatHasTitle(chatId) {
     const chatItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"] .chat-title`);
-    return chatItem && chatItem.textContent.trim() !== 'Untitled Chat';
+    return chatItem && chatItem.textContent.trim() !== 'New Chat';
 }
 
 function updateChatTitleInChats(chatId, newTitle) {

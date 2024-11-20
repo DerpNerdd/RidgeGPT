@@ -169,8 +169,8 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
           { role: 'system', content: 'You are an assistant that specializes in creating short and descriptive titles for conversations. Provide a concise and relevant title for the following conversation.' },
           { role: 'user', content: chat.messages.map(msg => `${msg.role}: ${msg.content}`).join('\n') },
         ],
-        temperature: 0.5,
-        max_tokens: 3,
+        temperature: 0.3,
+        max_tokens: 7,
       }, {
         headers: {
           'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,

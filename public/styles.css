@@ -299,6 +299,7 @@ body {
     border-radius: 8px;
     max-width: 75%;
     margin-right: 10px;
+    
 }
 
 .message.bot {
@@ -308,7 +309,7 @@ body {
 }
 
 .message-content {
-    font-size: 16px;
+    font-size: 14px;
     height: auto;
 }
 
@@ -346,6 +347,7 @@ body {
     overflow-y: hidden;
     box-sizing: border-box;
     margin: 0;
+    font-family: "Montserrat";
 }
 
 #user-input::placeholder {
