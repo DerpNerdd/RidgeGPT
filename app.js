@@ -141,7 +141,7 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
 
     // Send the conversation to OpenAI API
     const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-      model: 'gpt-4',
+      model: 'gpt-4o',
       messages: messages,
       temperature: 0.7,
     }, {
