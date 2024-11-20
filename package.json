@@ -14,8 +14,8 @@
     "mongoose": "^8.8.2",
     "openai": "^4.72.0"
   },
-  "name": "chaibot",
-  "version": "1.0.0",
+  "name": "ridgegpt",
+  "version": "0.0.2",
   "description": "hehehe hah",
   "main": "script.js",
   "scripts": {
