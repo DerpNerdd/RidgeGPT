@@ -164,28 +164,34 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     if (!chatTitle) {
       // Generate chat title using OpenAI
       const titleResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-4o',
+        model: 'gpt-4',
         messages: [
-          { role: 'system', content: 'You are an assistant that specializes in creating short and descriptive titles for conversations. Provide a concise and relevant title for the following conversation.' },
-          { role: 'user', content: chat.messages.map(msg => `${msg.role}: ${msg.content}`).join('\n') },
+          {
+            role: 'system',
+            content: 'You are an assistant that generates extremely concise, simple, and descriptive titles for conversations. Provide a title of 1 to 3 words that best represents the following conversation. Do not include any preamble, labels, or extra text—just provide the title itself without quotation marks or punctuation.'
+          },
+          {
+            role: 'user',
+            content: chat.messages.map(msg => msg.content).join('\n')
+          },
         ],
         temperature: 0.3,
-        max_tokens: 7,
+        max_tokens: 5,
       }, {
         headers: {
           'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
           'Content-Type': 'application/json',
         },
       });
-
+    
       let titleMessage = titleResponse.data.choices[0].message.content.trim();
-
-      // Remove leading and trailing quotation marks
-      titleMessage = titleMessage.replace(/^["']|["']$/g, '');
-  
+    
+      // Remove leading/trailing quotation marks and any "Title:" prefix
+      titleMessage = titleMessage.replace(/^["']|["']$/g, '').replace(/^[Tt]itle\s*[:\-–—]?\s*/, '');
+    
       chat.title = titleMessage;
       await chat.save();
-  
+    
       chatTitle = titleMessage;
     }
 
@@ -246,8 +252,47 @@ app.get('/api/chats/:id', authMiddleware, async (req, res) => {
   }
 });
 
+app.delete('/api/chats/:id', authMiddleware, async (req, res) => {
+  try {
+      const chatId = req.params.id;
+
+      const result = await Chat.deleteOne({ _id: chatId, user: req.session.userId });
+
+      if (result.deletedCount === 0) {
+          return res.status(404).json({ error: 'Chat not found.' });
+      }
+
+      res.json({ success: true });
+  } catch (err) {
+      console.error('Error deleting chat:', err);
+      res.status(500).json({ error: 'An error occurred while deleting the chat.' });
+  }
+});
+
+app.post('/api/chats/:id/rename', authMiddleware, async (req, res) => {
+  try {
+      const chatId = req.params.id;
+      const { title } = req.body;
+
+      const chat = await Chat.findOneAndUpdate(
+          { _id: chatId, user: req.session.userId },
+          { title: title },
+          { new: true }
+      );
+
+      if (!chat) {
+          return res.status(404).json({ error: 'Chat not found.' });
+      }
+
+      res.json({ success: true, chat });
+  } catch (err) {
+      console.error('Error renaming chat:', err);
+      res.status(500).json({ error: 'An error occurred while renaming the chat.' });
+  }
+});
+
 // Start Server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });

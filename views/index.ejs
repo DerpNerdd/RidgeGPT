@@ -44,10 +44,7 @@
             <div id="chat-list">
                 <!-- Chat list will be populated here -->
             </div>
-            <form action="/logout" method="POST">
-                <button type="submit" class="logout-btn">Logout</button>
-            </form>
-            <p class="username-display">Logged in as: <%= username %></p>
+            <!-- Removed logout form and username display from sidebar -->
         </div>
         <!-- Main Chat Area -->
         <div class="main" id="main-content">
@@ -58,6 +55,13 @@
                     <path fill="#dcdcdc" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
                 </svg>
             </button>
+            <!-- Account Button -->
+            <div class="account-button-container">
+                <button id="account-btn" class="account-btn">
+                    <!-- User Icon SVG -->
+                    <img src="./profilesvg.svg" width="24" height="24" alt="Profile Icon">
+                </button>
+            </div>
             <div class="chat-content">
                 <div id="chat-box" class="chat-box">
                     <!-- Chat messages will be appended here by script.js -->
@@ -78,6 +82,27 @@
             </div>
         </div>
     </div>
+
+    <div id="account-modal" class="modal">
+        <div class="modal-content">
+            <!-- Remove close button if not needed -->
+            <p class="username-display">Logged in as: <%= username %></p>
+            <form action="/logout" method="POST">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Chat Options Modal -->
+    <div id="chat-options-modal" class="modal">
+        <div class="modal-content">
+            <ul>
+                <li id="rename-chat-btn">Rename</li>
+                <li id="delete-chat-btn">Delete</li>
+            </ul>
+        </div>
+    </div>
+
     <!-- Highlight.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <!-- Marked.js Library -->

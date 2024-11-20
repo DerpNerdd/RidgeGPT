@@ -8,11 +8,19 @@ const closeSidebarBtn = document.getElementById('close-sidebar-btn');
 const showSidebarBtn = document.getElementById('show-sidebar-btn');
 const sidebar = document.getElementById('sidebar');
 const mainContent = document.getElementById('main-content');
+const chatOptionsModal = document.getElementById('chat-options-modal');
+const closeModalBtn = document.getElementById('close-modal-btn');
+const renameChatBtn = document.getElementById('rename-chat-btn');
+const deleteChatBtn = document.getElementById('delete-chat-btn');
+const accountBtn = document.getElementById('account-btn');
+const accountModal = document.getElementById('account-modal');
+const closeAccountModalBtn = document.getElementById('close-account-modal-btn');
 
 let canSendMessage = true; // Flag to control sending messages
 let conversation = []; // To store the conversation history
 let currentChatId = null; // To track the current chat ID
 let chatsData = []; // To store the list of chats
+let selectedChatId = null; // To keep track of which chat's options are being viewed
 
 closeSidebarBtn.addEventListener('click', () => {
     sidebar.classList.add('hidden');
@@ -207,7 +215,16 @@ async function createNewChat() {
                 currentChatId = data.chatId;
                 conversation = [];
                 chatBox.innerHTML = '';
-                await loadChats(); // Refresh chat list
+                // Instead of reloading chats, update chatsData and displayChatList
+                const newChat = {
+                    _id: currentChatId,
+                    title: 'New Chat',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                };
+                chatsData.unshift(newChat); // Add new chat to the beginning
+                displayChatList(chatsData); // Refresh chat list
+                highlightActiveChat(); // Highlight the new chat
                 console.log('New chat started with ID:', currentChatId);
             }
         } else {
@@ -503,6 +520,7 @@ function animateChatTitle(chatId, fullTitle) {
     if (!chatItem) return;
 
     chatItem.textContent = ''; // Clear existing title
+    chatItem.classList.add('animating'); // Add animating class
 
     let index = 0;
     const typingSpeed = 50; // Adjust typing speed as needed
@@ -514,6 +532,7 @@ function animateChatTitle(chatId, fullTitle) {
             setTimeout(typeChar, typingSpeed);
         } else {
             // Typing animation complete
+            chatItem.classList.remove('animating'); // Remove animating class
         }
     };
 
@@ -533,9 +552,9 @@ function updateChatTitleInChats(chatId, newTitle) {
         chat.title = newTitle;
     }
 
-    // Update the chat title in the UI
+    // Update the chat title in the UI (only if not animating)
     const chatTitleElement = document.querySelector(`.chat-item[data-chat-id="${chatId}"] .chat-title`);
-    if (chatTitleElement) {
+    if (chatTitleElement && !chatTitleElement.classList.contains('animating')) {
         chatTitleElement.textContent = newTitle;
     }
 }
@@ -577,3 +596,144 @@ userInput.addEventListener('keydown', (e) => {
     }
 });
 
+
+// Close modal when clicking outside of modal content
+window.addEventListener('click', (e) => {
+    if (e.target === chatOptionsModal) {
+        closeChatOptionsModal();
+    }
+});
+
+renameChatBtn.addEventListener('click', () => {
+    const newTitle = prompt('Enter new chat name:');
+    if (newTitle) {
+        // Update the chat title locally and on the server
+        updateChatTitle(selectedChatId, newTitle);
+    }
+    chatOptionsModal.classList.remove('visible');
+});
+
+// Event listener for Delete option
+deleteChatBtn.addEventListener('click', async () => {
+    const confirmDelete = confirm('Are you sure you want to delete this chat?');
+    if (confirmDelete) {
+        await deleteChat(selectedChatId);
+    }
+    chatOptionsModal.classList.remove('visible');
+});
+
+// Function to update chat title
+function updateChatTitle(chatId, newTitle) {
+    // Update the title in the local chats data
+    const chat = chatsData.find(c => c._id === chatId);
+    if (chat) {
+        chat.title = newTitle;
+    }
+
+    // Update the chat title in the UI
+    const chatTitleElement = document.querySelector(`.chat-item[data-chat-id="${chatId}"] .chat-title`);
+    if (chatTitleElement) {
+        chatTitleElement.textContent = newTitle;
+    }
+
+    // Send update to the server
+    fetch(`/api/chats/${chatId}/rename`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ title: newTitle })
+    }).then(response => {
+        if (!response.ok) {
+            console.error('Failed to rename chat on server');
+        }
+    }).catch(err => {
+        console.error('Error renaming chat on server:', err);
+    });
+}
+
+// Function to delete chat
+async function deleteChat(chatId) {
+    try {
+        const response = await fetch(`/api/chats/${chatId}`, {
+            method: 'DELETE',
+        });
+        if (response.ok) {
+            // Remove chat from local data and UI
+            chatsData = chatsData.filter(chat => chat._id !== chatId);
+            displayChatList(chatsData);
+
+            // If the deleted chat was the current chat, load another chat or create a new one
+            if (currentChatId === chatId) {
+                if (chatsData.length > 0) {
+                    currentChatId = chatsData[0]._id;
+                    await loadChat(currentChatId);
+                    highlightActiveChat();
+                } else {
+                    await createNewChat();
+                }
+            }
+        } else {
+            console.error('Failed to delete chat');
+        }
+    } catch (err) {
+        console.error('Error deleting chat:', err);
+    }
+}
+
+accountBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleAccountModal();
+});
+
+function toggleAccountModal() {
+    // Close chat options modal if open
+    chatOptionsModal.classList.remove('visible');
+
+    if (accountModal.classList.contains('visible')) {
+        accountModal.classList.remove('visible');
+    } else {
+        // Position the account modal below the account button
+        const rect = accountBtn.getBoundingClientRect();
+        accountModal.style.top = rect.bottom + 'px';
+        accountModal.style.right = (window.innerWidth - rect.right) + 'px';
+        accountModal.classList.add('visible');
+    }
+}
+
+// Event listener for chat options button
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.chat-options-btn')) {
+        e.stopPropagation();
+        selectedChatId = e.target.closest('.chat-item').dataset.chatId;
+        toggleChatOptionsModal(e.target.closest('.chat-options-btn'));
+    } else {
+        // Close modals when clicking outside
+        chatOptionsModal.classList.remove('visible');
+        accountModal.classList.remove('visible');
+    }
+});
+
+// Open/Toggle chat options modal
+function toggleChatOptionsModal(buttonElement) {
+    // Close account modal if open
+    accountModal.classList.remove('visible');
+
+    if (chatOptionsModal.classList.contains('visible')) {
+        chatOptionsModal.classList.remove('visible');
+    } else {
+        // Position the chat options modal next to the button
+        const rect = buttonElement.getBoundingClientRect();
+        chatOptionsModal.style.top = rect.top + 'px';
+        chatOptionsModal.style.left = rect.right + 'px';
+        chatOptionsModal.classList.add('visible');
+    }
+}
+
+// Close modals when clicking elsewhere
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.modal') && !e.target.closest('.account-btn') && !e.target.closest('.chat-options-btn')) {
+        chatOptionsModal.classList.remove('visible');
+        accountModal.classList.remove('visible');
+    }
+});

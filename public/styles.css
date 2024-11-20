@@ -223,10 +223,11 @@ body {
     background-color: #212121;
     align-items: center;
     margin-left: 300px;
-    height: 100vh;
-    overflow-y: hidden;
+    /* Remove height and overflow-y properties */
+    /* height: 100vh; */
+    /* overflow-y: hidden; */
     position: relative;
-    transition: margin-left 0.3s ease; /* Add transition */
+    transition: margin-left 0.3s ease;
 }
 
 .main.collapsed {
@@ -262,8 +263,11 @@ body {
     display: flex;
     flex-direction: column;
     flex: 1;
+    /* Remove height */
+    /* height: calc(100vh - [height of input area]); */
 }
 
+/* Adjust .chat-box to have proper scrolling */
 .chat-box {
     flex: 1;
     padding: 20px;
@@ -505,6 +509,113 @@ body {
     background-color: #4a4a4a;
     font-weight: bold;
 }
+
+.chat-title.animating {
+    user-select: none;
+}
+
+.modal {
+    display: none; /* Hidden by default */
+    position: absolute;
+    z-index: 1000; /* On top of other elements */
+    background-color: #2f2f2f;
+    border: 1px solid #888;
+    border-radius: 8px;
+    color: #dcdcdc;
+    min-width: 150px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.modal.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.modal-content {
+    padding: 10px;
+}
+
+.close-modal-btn {
+    color: #dcdcdc;
+    float: right;
+    font-size: 18px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.close-modal-btn:hover,
+.close-modal-btn:focus {
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.modal-content li {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #444;
+}
+
+.modal-content li:last-child {
+    border-bottom: none;
+}
+
+.modal-content li:hover {
+    background-color: #3a3a3a;
+}
+
+/* Positioning for Account Modal */
+#account-modal {
+    right: 10px;
+    top: 50px;
+}
+
+/* Positioning for Chat Options Modal */
+#chat-options-modal {
+    /* Position will be set dynamically in script.js */
+}
+
+/* Optional: Adjust the position of the triangle indicator */
+.modal::after {
+    content: '';
+    position: absolute;
+    top: -8px; /* Adjust as needed */
+    left: 20px; /* Adjust as needed for alignment */
+    border-width: 0 8px 8px 8px;
+    border-style: solid;
+    border-color: transparent transparent #2f2f2f transparent;
+}
+
+.account-button-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.account-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: #dcdcdc;
+}
+
+.account-btn:hover {
+    color: #fff;
+}
+
 
 @keyframes typing {
     0%, 80%, 100% {
