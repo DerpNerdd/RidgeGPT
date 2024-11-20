@@ -110,7 +110,6 @@ app.post('/logout', (req, res) => {
   });
 });
 
-// Proxy route for ChatGPT API
 app.post('/api/chat', authMiddleware, async (req, res) => {
   console.log('Chat endpoint hit with data:', req.body);
 
@@ -132,21 +131,22 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     const userMessage = { role: 'user', content: message };
     chat.messages.push(userMessage);
 
-    // If the chat doesn't have a title yet, set it to the first user message
-    if (!chat.title) {
-      chat.title = message.substring(0, 100); // Limit title length
-    }
-
     await chat.save();
+
+    // Prepare messages for the API call
+    const messages = chat.messages.map(msg => ({
+      role: msg.role,
+      content: msg.content,
+    }));
 
     // Send the conversation to OpenAI API
     const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-      model: 'gpt-4o', 
-      messages: chat.messages.map(msg => ({ role: msg.role, content: msg.content })),
-      temperature: 0.6,
+      model: 'gpt-4',
+      messages: messages,
+      temperature: 0.7,
     }, {
       headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`, // Use API key from .env
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
     });
@@ -158,7 +158,38 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
     chat.messages.push(assistantMessage);
     await chat.save();
 
-    res.json({ success: true, message: assistantMessage });
+    let chatTitle = chat.title;
+
+    // If the chat doesn't have a title yet, generate one
+    if (!chatTitle) {
+      // Generate chat title using OpenAI
+      const titleResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: 'You are an assistant that specializes in creating short and descriptive titles for conversations. Provide a concise and relevant title for the following conversation.' },
+          { role: 'user', content: chat.messages.map(msg => `${msg.role}: ${msg.content}`).join('\n') },
+        ],
+        temperature: 0.5,
+        max_tokens: 3,
+      }, {
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      let titleMessage = titleResponse.data.choices[0].message.content.trim();
+
+      // Remove leading and trailing quotation marks
+      titleMessage = titleMessage.replace(/^["']|["']$/g, '');
+  
+      chat.title = titleMessage;
+      await chat.save();
+  
+      chatTitle = titleMessage;
+    }
+
+    res.json({ success: true, message: assistantMessage, title: chatTitle });
   } catch (error) {
     // Log detailed errors for troubleshooting
     console.error('Error communicating with OpenAI API:', error.response ? error.response.data : error.message);

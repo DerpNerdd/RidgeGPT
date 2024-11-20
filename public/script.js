@@ -1,16 +1,30 @@
-// script.js
-
-// Get references to the necessary DOM elements
 const chatBox = document.getElementById('chat-box');
 const userInput = document.getElementById('user-input');
 const chatForm = document.getElementById('chat-form');
 const sendBtn = document.getElementById('send-btn');
 const newChatBtn = document.getElementById('new-chat-btn');
 const chatListContainer = document.getElementById('chat-list');
+const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+const showSidebarBtn = document.getElementById('show-sidebar-btn');
+const sidebar = document.getElementById('sidebar');
+const mainContent = document.getElementById('main-content');
 
 let canSendMessage = true; // Flag to control sending messages
 let conversation = []; // To store the conversation history
 let currentChatId = null; // To track the current chat ID
+let chatsData = []; // To store the list of chats
+
+closeSidebarBtn.addEventListener('click', () => {
+    sidebar.classList.add('hidden');
+    mainContent.classList.add('collapsed');
+    showSidebarBtn.classList.add('visible');
+});
+
+showSidebarBtn.addEventListener('click', () => {
+    sidebar.classList.remove('hidden');
+    mainContent.classList.remove('collapsed');
+    showSidebarBtn.classList.remove('visible');
+});
 
 // Configure Marked.js
 marked.setOptions({
@@ -55,24 +69,93 @@ async function loadChats() {
     }
 }
 
+
+function groupChatsByDate(chats) {
+    // (Updated to include Years)
+    const grouped = {};
+    const today = new Date().setHours(0, 0, 0, 0);
+
+    chats.forEach(chat => {
+        const chatDate = new Date(chat.updatedAt).setHours(0, 0, 0, 0);
+        const daysDifference = (today - chatDate) / (1000 * 60 * 60 * 24);
+
+        let groupName = '';
+
+        if (daysDifference < 1) {
+            groupName = 'Today';
+        } else if (daysDifference < 2) {
+            groupName = 'Yesterday';
+        } else if (daysDifference < 7) {
+            groupName = 'Previous 7 Days';
+        } else if (daysDifference < 30) {
+            groupName = 'Previous 30 Days';
+        } else if (daysDifference < 365) {
+            const options = { month: 'long' };
+            groupName = new Date(chatDate).toLocaleDateString(undefined, options);
+        } else {
+            const options = { year: 'numeric' };
+            groupName = new Date(chatDate).toLocaleDateString(undefined, options);
+        }
+
+        if (!grouped[groupName]) {
+            grouped[groupName] = [];
+        }
+
+        grouped[groupName].push(chat);
+    });
+
+    return grouped;
+}
+
 // Function to display chat list
 function displayChatList(chats) {
     chatListContainer.innerHTML = '';
-    chats.forEach(chat => {
-        const chatItem = document.createElement('div');
-        chatItem.classList.add('chat-item');
-        chatItem.textContent = chat.title || 'Untitled Chat';
-        chatItem.dataset.chatId = chat._id;
-        if (chat._id === currentChatId) {
-            chatItem.classList.add('active');
-        }
-        chatItem.addEventListener('click', async () => {
-            currentChatId = chat._id;
-            highlightActiveChat();
-            await loadChat(currentChatId);
+    chatsData = chats; // Store chats locally
+    const groupedChats = groupChatsByDate(chats);
+
+    for (const [groupName, chatsInGroup] of Object.entries(groupedChats)) {
+        const chatSection = document.createElement('div');
+        chatSection.classList.add('chat-section');
+
+        const header = document.createElement('h3');
+        header.textContent = groupName;
+        chatSection.appendChild(header);
+
+        chatsInGroup.forEach(chat => {
+            const chatItem = document.createElement('div');
+            chatItem.classList.add('chat-item');
+            chatItem.dataset.chatId = chat._id;
+
+            const chatTitle = document.createElement('div');
+            chatTitle.classList.add('chat-title');
+            chatTitle.textContent = chat.title || 'Untitled Chat';
+
+            const chatOptionsBtn = document.createElement('button');
+            chatOptionsBtn.classList.add('chat-options-btn');
+
+            // Three dots icon
+            chatOptionsBtn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path fill="#dcdcdc" d="M12,16A2,2 0 1,1 14,18A2,2 0 0,1 12,16M12,10A2,2 0 1,1 14,12A2,2 0 0,1 12,10M12,4A2,2 0 1,1 14,6A2,2 0 0,1 12,4Z" />
+                </svg>
+            `;
+
+            chatItem.appendChild(chatTitle);
+            chatItem.appendChild(chatOptionsBtn);
+
+            if (chat._id === currentChatId) {
+                chatItem.classList.add('active');
+            }
+            chatItem.addEventListener('click', async () => {
+                currentChatId = chat._id;
+                highlightActiveChat();
+                await loadChat(currentChatId);
+            });
+            chatSection.appendChild(chatItem);
         });
-        chatListContainer.appendChild(chatItem);
-    });
+
+        chatListContainer.appendChild(chatSection);
+    }
 }
 
 // Function to highlight the active chat
@@ -106,7 +189,6 @@ async function loadChat(chatId) {
     }
 }
 
-// Function to display conversation
 function displayConversation(conversation) {
     chatBox.innerHTML = '';
     conversation.forEach(message => {
@@ -114,7 +196,6 @@ function displayConversation(conversation) {
     });
 }
 
-// Function to create a new chat
 async function createNewChat() {
     try {
         const response = await fetch('/api/new-chat', {
@@ -136,7 +217,6 @@ async function createNewChat() {
         console.error('Error creating new chat:', err);
     }
 }
-
 // Event listener for the "New Chat" button
 newChatBtn.addEventListener('click', async () => {
     await createNewChat();
@@ -395,8 +475,13 @@ const chatWithBot = async (userMessage, isContinuation = false) => {
 
             console.log('Bot response appended:', assistantMessage.content);
 
-            // Reload chats to update titles if necessary
-            await loadChats();
+            if (data.title && !chatHasTitle(currentChatId)) {
+                animateChatTitle(currentChatId, data.title);
+                // Update the local chat data to indicate it has a title
+                updateChatTitleInChats(currentChatId, data.title);
+            }
+            // Optionally reload chats to update titles if necessary
+            // await loadChats(); // Comment out if you don't want to reload the entire chat list
         } else {
             // Remove typing indicator
             removeTypingIndicator();
@@ -413,6 +498,47 @@ const chatWithBot = async (userMessage, isContinuation = false) => {
     }
 };
 
+function animateChatTitle(chatId, fullTitle) {
+    const chatItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"] .chat-title`);
+    if (!chatItem) return;
+
+    chatItem.textContent = ''; // Clear existing title
+
+    let index = 0;
+    const typingSpeed = 50; // Adjust typing speed as needed
+
+    const typeChar = () => {
+        if (index < fullTitle.length) {
+            chatItem.textContent += fullTitle.charAt(index);
+            index++;
+            setTimeout(typeChar, typingSpeed);
+        } else {
+            // Typing animation complete
+        }
+    };
+
+    typeChar();
+}
+
+// Function to check if chat has a title locally
+function chatHasTitle(chatId) {
+    const chatItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"] .chat-title`);
+    return chatItem && chatItem.textContent.trim() !== 'Untitled Chat';
+}
+
+function updateChatTitleInChats(chatId, newTitle) {
+    // Update the title in the local chats data
+    const chat = chatsData.find(c => c._id === chatId);
+    if (chat) {
+        chat.title = newTitle;
+    }
+
+    // Update the chat title in the UI
+    const chatTitleElement = document.querySelector(`.chat-item[data-chat-id="${chatId}"] .chat-title`);
+    if (chatTitleElement) {
+        chatTitleElement.textContent = newTitle;
+    }
+}
 // Event listener for form submission
 chatForm.addEventListener('submit', (e) => {
     e.preventDefault(); // Prevent the form from submitting and refreshing the page
@@ -450,3 +576,4 @@ userInput.addEventListener('keydown', (e) => {
         sendBtn.click(); // Trigger send button click
     }
 });
+

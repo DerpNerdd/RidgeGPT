@@ -3,11 +3,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ChatGPT Clone</title>
+    <title>RidgeGPT</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Google Fonts for styling -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
     <!-- Highlight.js CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
     <!-- Stylesheet -->
@@ -16,8 +15,32 @@
 <body>
     <div class="chat-container">
         <!-- Sidebar -->
-        <div class="sidebar">
-            <button class="new-chat-btn" id="new-chat-btn">+ New Chat</button>
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <!-- Close Sidebar Button -->
+                <button class="close-btn" id="close-sidebar-btn">
+                    <!-- Menu Icon SVG -->
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                        <path fill="#dcdcdc" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+                    </svg>
+                </button>
+                <div>
+                    <!-- Search Button -->
+                    <button class="search-btn" id="search-btn">
+                        <!-- Search Icon SVG -->
+                        <svg width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="#dcdcdc" d="M9,2A7,7 0 0,1 16,9C16,11.21 15.2,13.21 13.85,14.65L14.5,15.3L19.2,20L17.8,21.4L13.1,16.7L12.45,16.05C11,17.4 9,18.2 7,18.2A7,7 0 0,1 0,11.2A7,7 0 0,1 7,4.2A7,7 0 0,1 9,2M9,4.2A5,5 0 0,0 4,9.2A5,5 0 0,0 9,14.2A5,5 0 0,0 14,9.2A5,5 0 0,0 9,4.2Z" />
+                        </svg>
+                    </button>
+                    <!-- New Chat Button -->
+                    <button class="new-chat-btn" id="new-chat-btn">
+                        <!-- Plus Icon SVG -->
+                        <svg width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="#dcdcdc" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M13,11V6H11V11H6V13H11V18H13V13H18V11H13Z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
             <div id="chat-list">
                 <!-- Chat list will be populated here -->
             </div>
@@ -27,7 +50,14 @@
             <p class="username-display">Logged in as: <%= username %></p>
         </div>
         <!-- Main Chat Area -->
-        <div class="main">
+        <div class="main" id="main-content">
+            <!-- Show Sidebar Button -->
+            <button class="show-sidebar-btn" id="show-sidebar-btn">
+                <!-- Menu Icon SVG -->
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                    <path fill="#dcdcdc" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+                </svg>
+            </button>
             <div class="chat-content">
                 <div id="chat-box" class="chat-box">
                     <!-- Chat messages will be appended here by script.js -->
