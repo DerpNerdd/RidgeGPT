@@ -195,6 +195,8 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
       chatTitle = titleMessage;
     }
 
+  
+
     res.json({ success: true, message: assistantMessage, title: chatTitle });
   } catch (error) {
     // Log detailed errors for troubleshooting
@@ -237,20 +239,23 @@ app.get('/api/chats', authMiddleware, async (req, res) => {
 
 // API Route to get messages of a chat
 app.get('/api/chats/:id', authMiddleware, async (req, res) => {
-  try {
-    const chatId = req.params.id;
-    const chat = await Chat.findOne({ _id: chatId, user: req.session.userId });
-
-    if (!chat) {
-      return res.status(404).json({ error: 'Chat not found.' });
+    try {
+      const chatId = req.params.id;
+      const chat = await Chat.findOne({ _id: chatId, user: req.session.userId });
+  
+      if (!chat) {
+        return res.status(404).json({ error: 'Chat not found.' });
+      }
+  
+      // Ensure that the content is sent as-is without modification
+      res.json({ success: true, chat });
+    } catch (err) {
+      console.error('Error fetching chat:', err);
+      res.status(500).json({ error: 'An error occurred while fetching the chat.' });
     }
+  });
+  
 
-    res.json({ success: true, chat });
-  } catch (err) {
-    console.error('Error fetching chat:', err);
-    res.status(500).json({ error: 'An error occurred while fetching the chat.' });
-  }
-});
 
 app.delete('/api/chats/:id', authMiddleware, async (req, res) => {
   try {

@@ -9,12 +9,10 @@ const showSidebarBtn = document.getElementById('show-sidebar-btn');
 const sidebar = document.getElementById('sidebar');
 const mainContent = document.getElementById('main-content');
 const chatOptionsModal = document.getElementById('chat-options-modal');
-const closeModalBtn = document.getElementById('close-modal-btn');
 const renameChatBtn = document.getElementById('rename-chat-btn');
 const deleteChatBtn = document.getElementById('delete-chat-btn');
 const accountBtn = document.getElementById('account-btn');
 const accountModal = document.getElementById('account-modal');
-const closeAccountModalBtn = document.getElementById('close-account-modal-btn');
 
 let canSendMessage = true; // Flag to control sending messages
 let conversation = []; // To store the conversation history
@@ -34,18 +32,20 @@ showSidebarBtn.addEventListener('click', () => {
     showSidebarBtn.classList.remove('visible');
 });
 
-// Configure Marked.js
 marked.setOptions({
-    breaks: true, // Convert '\n' in paragraphs into <br>
-    highlight: function(code, lang) {
+    gfm: true,
+    breaks: true,
+    smartLists: true,
+    smartypants: false,
+    xhtml: false,
+    highlight: function (code, lang) {
         if (lang && hljs.getLanguage(lang)) {
             return hljs.highlight(code, { language: lang }).value;
         } else {
             return hljs.highlightAuto(code).value;
         }
-    }
+    },
 });
-
 // Load chats on page load
 document.addEventListener('DOMContentLoaded', async () => {
     await loadChats();
@@ -74,6 +74,26 @@ async function loadChats() {
         }
     } catch (err) {
         console.error('Error loading chats:', err);
+    }
+}
+
+// Function to load a specific chat
+async function loadChat(chatId) {
+    try {
+        const response = await fetch(`/api/chats/${chatId}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                const chat = data.chat;
+                conversation = chat.messages;
+                console.log('Loaded conversation:', conversation);
+                displayConversation(conversation);
+            }
+        } else {
+            console.error('Failed to load chat messages');
+        }
+    } catch (err) {
+        console.error('Error loading chat messages:', err);
     }
 }
 
@@ -241,48 +261,22 @@ newChatBtn.addEventListener('click', async () => {
 
 // Function to append messages to the chat box without typing animation
 const appendMessage = (role, content) => {
+    console.log(`Appending message. Role: ${role}, Content:`, content); // Log content
+
     const messageContainer = document.createElement('div');
     messageContainer.classList.add('message', role);
 
     const messageContent = document.createElement('div');
     messageContent.classList.add('message-content');
 
-    // Render the content using Marked.js
-    messageContent.innerHTML = marked.parse(content);
-
-    // Handle code blocks to add copy buttons
-    const codeBlocks = messageContent.querySelectorAll('pre');
-    codeBlocks.forEach((preBlock) => {
-        const codeBlock = preBlock.querySelector('code');
-        if (codeBlock) {
-            // Wrap the code block in a div
-            const codeContainer = document.createElement('div');
-            codeContainer.classList.add('code-container');
-
-            // Create a copy button
-            const copyButton = document.createElement('button');
-            copyButton.classList.add('copy-button');
-            copyButton.textContent = 'Copy';
-
-            // Add copy functionality
-            copyButton.addEventListener('click', () => {
-                // Copy code to clipboard
-                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
-                    copyButton.textContent = 'Copied!';
-                    setTimeout(() => {
-                        copyButton.textContent = 'Copy';
-                    }, 2000);
-                });
-            });
-
-            // Move the code block into the container
-            codeContainer.appendChild(copyButton);
-            codeContainer.appendChild(preBlock.cloneNode(true));
-
-            // Replace the original pre element with the container
-            preBlock.parentNode.replaceChild(codeContainer, preBlock);
-        }
-    });
+    if (role === 'bot') {
+        // Render the content using Marked.js for bot messages
+        messageContent.innerHTML = marked.parse(content);
+        processCodeBlocks(messageContent);
+    } else {
+        // For user messages, display as plain text to avoid markdown parsing
+        messageContent.textContent = content;
+    }
 
     messageContainer.appendChild(messageContent);
     chatBox.appendChild(messageContainer);
@@ -324,6 +318,12 @@ const removeTypingIndicator = () => {
 
 // Function to append messages with typing animation
 const appendMessageWithTyping = (role, content) => {
+    if (role !== 'bot') {
+        // For non-bot messages, fallback to appendMessage
+        appendMessage(role, content);
+        return;
+    }
+
     const messageContainer = document.createElement('div');
     messageContainer.classList.add('message', role);
 
@@ -338,16 +338,19 @@ const appendMessageWithTyping = (role, content) => {
     const parsedHTML = document.createElement('div');
     parsedHTML.innerHTML = marked.parse(content);
 
-    let typingSpeed = 10; // Faster typing speed (milliseconds per character)
+    let typingSpeed = 10; // Typing speed in milliseconds per character
 
     // Function to recursively traverse and animate nodes
-    const animateNodes = (parentNode, container) => {
+    const animateNodes = (parentNode, container, callback) => {
         const nodes = Array.from(parentNode.childNodes);
 
         let index = 0;
 
         const processNode = () => {
-            if (index >= nodes.length) return;
+            if (index >= nodes.length) {
+                if (callback) callback();
+                return;
+            }
 
             const node = nodes[index];
             index++;
@@ -379,44 +382,10 @@ const appendMessageWithTyping = (role, content) => {
                     elementClone.innerHTML = node.innerHTML;
                     chatBox.scrollTop = chatBox.scrollHeight;
 
-                    // Handle code blocks to add copy buttons
-                    if (node.tagName.toLowerCase() === 'pre') {
-                        const codeBlocks = elementClone.querySelectorAll('code');
-                        codeBlocks.forEach((codeBlock) => {
-                            // Wrap the code block in a div
-                            const codeContainer = document.createElement('div');
-                            codeContainer.classList.add('code-container');
-
-                            // Create a copy button
-                            const copyButton = document.createElement('button');
-                            copyButton.classList.add('copy-button');
-                            copyButton.textContent = 'Copy';
-
-                            // Add copy functionality
-                            copyButton.addEventListener('click', () => {
-                                // Copy code to clipboard
-                                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
-                                    copyButton.textContent = 'Copied!';
-                                    setTimeout(() => {
-                                        copyButton.textContent = 'Copy';
-                                    }, 2000);
-                                });
-                            });
-
-                            // Move the code block into the container
-                            codeContainer.appendChild(copyButton);
-                            codeContainer.appendChild(codeBlock.parentNode.cloneNode(true));
-
-                            // Replace the original code element with the container
-                            codeBlock.parentNode.parentNode.replaceChild(codeContainer, codeBlock.parentNode);
-                        });
-                    }
-
                     processNode(); // Move to the next node
                 } else {
                     // Recursively animate child nodes
-                    animateNodes(node, elementClone);
-                    processNode(); // Move to the next node
+                    animateNodes(node, elementClone, processNode);
                 }
             } else {
                 processNode(); // Skip other node types
@@ -426,8 +395,12 @@ const appendMessageWithTyping = (role, content) => {
         processNode();
     };
 
-    animateNodes(parsedHTML, messageContent);
+    animateNodes(parsedHTML, messageContent, () => {
+        // After animation is complete, process code blocks
+        processCodeBlocks(messageContent);
+    });
 };
+
 
 // Function to send message to the server
 const chatWithBot = async (userMessage, isContinuation = false) => {
@@ -560,15 +533,11 @@ function updateChatTitleInChats(chatId, newTitle) {
 }
 // Event listener for form submission
 chatForm.addEventListener('submit', (e) => {
-    e.preventDefault(); // Prevent the form from submitting and refreshing the page
+    e.preventDefault();
     const message = userInput.value.trim();
     if (message) {
-        console.log('Sending user input:', message);
-        chatWithBot(message); // Call function to send user's message to the bot
+        chatWithBot(message); // Ensure only one function sends the message
         userInput.value = ''; // Clear input field
-        userInput.style.height = 'auto'; // Reset textarea height
-    } else {
-        console.log('Empty message, not sending.');
     }
 });
 
@@ -737,3 +706,63 @@ document.addEventListener('click', (e) => {
         accountModal.classList.remove('visible');
     }
 });
+
+function processCodeBlocks(container) {
+    // Handle code blocks to add copy buttons and headers
+    const codeBlocks = container.querySelectorAll('pre');
+    codeBlocks.forEach((preBlock) => {
+        const codeBlock = preBlock.querySelector('code');
+        if (codeBlock) {
+            // Get the language from the class (e.g., 'language-javascript')
+            let language = '';
+            codeBlock.classList.forEach((cls) => {
+                if (cls.startsWith('language-')) {
+                    language = cls.replace('language-', '');
+                }
+            });
+
+            // Wrap the code block in a div
+            const codeContainer = document.createElement('div');
+            codeContainer.classList.add('code-container');
+
+            // Create a header for the code block
+            const codeHeader = document.createElement('div');
+            codeHeader.classList.add('code-header');
+
+            const languageSpan = document.createElement('span');
+            languageSpan.classList.add('code-language');
+            languageSpan.textContent = language || '';
+
+            // Create a copy button
+            const copyButton = document.createElement('button');
+            copyButton.classList.add('copy-button');
+            copyButton.textContent = 'Copy';
+
+            // Add copy functionality
+            copyButton.addEventListener('click', () => {
+                // Copy code to clipboard
+                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                    copyButton.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyButton.textContent = 'Copy';
+                    }, 2000);
+                });
+            });
+
+            codeHeader.appendChild(languageSpan);
+            codeHeader.appendChild(copyButton);
+
+            // Append header to code container
+            codeContainer.appendChild(codeHeader);
+
+            // Move the code block into the container
+            codeContainer.appendChild(preBlock.cloneNode(true));
+
+            // Replace the original pre element with the container
+            preBlock.parentNode.replaceChild(codeContainer, preBlock);
+
+            // Highlight the code block using Highlight.js
+            hljs.highlightElement(codeBlock);
+        }
+    });
+}
