@@ -58,50 +58,61 @@ app.get('/', authMiddleware, (req, res) => {
 
 // Registration Routes
 app.get('/register', (req, res) => {
-  res.render('register');
+  res.render('register', { error: {} }); // Pass an empty error object
 });
-
 app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
+  const { email, username, password } = req.body;
+  const errors = {};
+  
   try {
-    // Check if username already exists
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.render('register', { error: 'Username already exists.' });
+    if (await User.findOne({ email })) {
+      errors.email = 'Email already registered';
+    }
+    if (await User.findOne({ username })) {
+      errors.username = 'Username already taken';
     }
 
-    const user = new User({ username, password });
+    if (Object.keys(errors).length > 0) {
+      return res.render('register', { error: errors });
+    }
+
+    const user = new User({ email, username, password });
     await user.save();
-    req.session.userId = user._id; // Save user ID in session
-    req.session.username = user.username; // Save username in session
+    req.session.userId = user._id;
+    req.session.username = user.username;
     res.redirect('/');
   } catch (err) {
-    console.error('Registration error:', err);
-    res.render('register', { error: 'An error occurred during registration.' });
+    console.error(err);
+    res.render('register', { error: { general: 'An error occurred during registration' } });
   }
 });
+
 
 // Login Routes
 app.get('/login', (req, res) => {
-  res.render('login');
+  res.render('login', { error: {} }); // Pass an empty error object
 });
 
 app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
+  const errors = {};
+
   try {
-    const user = await User.findOne({ username });
-    if (user && await user.comparePassword(password)) {
-      req.session.userId = user._id; // Save user ID in session
-      req.session.username = user.username; // Save username in session
-      res.redirect('/');
-    } else {
-      res.render('login', { error: 'Invalid username or password.' });
+    const user = await User.findOne({ email });
+    if (!user || !(await user.comparePassword(password))) {
+      errors.general = 'Incorrect email or password';
+      return res.render('login', { error: errors });
     }
+
+    req.session.userId = user._id;
+    req.session.username = user.username;
+    res.redirect('/');
   } catch (err) {
-    console.error('Login error:', err);
-    res.render('login', { error: 'An error occurred during login.' });
+    console.error(err);
+    res.render('login', { error: { general: 'An error occurred during login' } });
   }
 });
+
 
 // Logout Route
 app.post('/logout', (req, res) => {

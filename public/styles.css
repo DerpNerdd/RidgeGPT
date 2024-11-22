@@ -274,7 +274,23 @@ body {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    position: relative; /* For pseudo-element positioning */
 }
+
+.chat-box::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('./backridgelogo.png') no-repeat center center/cover;
+    background-size: 25%; /* Set the size to 50% of the container */
+    opacity: 0.1; /* Adjust for opacity (more opaque) */
+    z-index: 1; /* Ensure it stays behind the content */
+    pointer-events: none; /* Prevent interactions */
+}
+
 
 .chat-box::-webkit-scrollbar {
     width: 8px;
@@ -414,57 +430,115 @@ body {
     animation-delay: 0.6s;
 }
 
-.auth-container {
+/* Auth Page Container */
+.auth-page-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100vw;
+    background-color: #121212;
+    position: relative; /* Necessary for the overlay effect */
+    overflow: hidden;
+    margin: 0;
+}
+
+.auth-page-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%; /* Ensure it spans the full width */
+    height: 100%; /* Ensure it spans the full height */
+    background: url('./backridgelogo.png') no-repeat center center/cover;
+    background-size: 50%; /* Set the size to 50% of the container */
+    opacity: 0.2; /* Adjust dimming effect */
+    z-index: 1; /* Places it behind the form */
+    pointer-events: none; /* Prevent interactions */
+}
+
+
+/* Auth Card */
+.auth-card {
+    z-index: 1; /* Ensure it's above the background image */
+    background-color: #1e1e1e;
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     max-width: 400px;
-    margin: 100px auto;
-    background-color: #2f2f2f;
-    padding: 20px;
+    width: 100%;
+    text-align: center;
+}
+
+/* Auth Title */
+.auth-card h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    color: #ffffff;
+}
+
+/* Input Styles */
+.auth-card input {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 16px;
     border-radius: 8px;
-    color: #dcdcdc;
+    border: 1px solid #333;
+    background-color: #2a2a2a;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
 }
 
-.auth-container h1 {
-    text-align: center;
-    margin-bottom: 20px;
+.auth-card input:focus {
+    border-color: #4a90e2;
 }
 
-.auth-form input {
+/* Button Styles */
+.auth-card button {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #565656;
-    border-radius: 5px;
-    background-color: #212121;
-    color: #fff;
-}
-
-.auth-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #3a3a3a;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #4a90e2;
+    color: #ffffff;
     border: none;
-    border-radius: 5px;
-    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
+    transition: background-color 0.3s;
 }
 
-.auth-button:hover {
-    background-color: #4a4a4a;
+.auth-card button:hover {
+    background-color: #3a78c3;
 }
 
-.error-message {
-    color: #ff6b6b;
-    text-align: center;
-    margin-bottom: 10px;
+/* Auth Links */
+.auth-card .auth-links {
+    margin-top: 16px;
+    color: #8e8e8e;
+    font-size: 14px;
 }
 
-.auth-container p {
-    text-align: center;
-}
-
-.auth-container a {
+.auth-card .auth-links a {
     color: #4a90e2;
+    text-decoration: none;
+    font-weight: 500;
 }
+
+.auth-card .auth-links a:hover {
+    text-decoration: underline;
+}
+
+.error-text {
+    color: red;
+    font-size: 12px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+    display: block;
+  }
+  
 
 /* Sidebar Styles */
 .logout-btn {
