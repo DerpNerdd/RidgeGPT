@@ -9,9 +9,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <!-- Highlight.js CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <!-- Highlight.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <!-- Marked.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- Stylesheet -->
     <link rel="stylesheet" href="/styles.css">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <!-- Your Script -->
+    <script src="/script.js" defer></script>
 </head>
 <body>
     <div class="chat-container">
@@ -45,26 +51,39 @@
             <div id="chat-list">
                 <!-- Chat list will be populated here -->
             </div>
-            <!-- Removed logout form and username display from sidebar -->
         </div>
         <!-- Main Chat Area -->
         <div class="main" id="main-content">
-            <!-- Show Sidebar Button -->
-            <button class="show-sidebar-btn" id="show-sidebar-btn">
-                <!-- Menu Icon SVG -->
-                <svg width="24" height="24" viewBox="0 0 24 24">
-                    <path fill="#dcdcdc" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
-                </svg>
-            </button>
-            <!-- Account Button -->
-            <div class="account-button-container">
-                <button id="account-btn" class="account-btn">
-                    <!-- User Icon SVG -->
-                    <img src="./profilesvg.svg" width="48" height="48" alt="Profile Icon">
-                </button>
+            <!-- Top Buttons Container -->
+            <div class="top-buttons">
+                <div class="left-buttons">
+                    <!-- Show Sidebar Button -->
+                    <button class="show-sidebar-btn" id="show-sidebar-btn">
+                        <!-- Menu Icon SVG -->
+                        <svg width="32" height="32" viewBox="0 0 24 24">
+                            <path fill="#dcdcdc" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+                        </svg>
+                    </button>
+                    <!-- Model Selector Button -->
+                    <button id="model-selector-btn" class="model-selector-btn">
+                        <!-- Model Icon SVG -->
+                        <svg width="32" height="32" viewBox="0 0 24 24">
+                            <path fill="#dcdcdc" d="M12,2A10,10 0 1,1 2,12A10,10 0 0,1 12,2M11,6H13V13H11V6M11,16H13V18H11V16Z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="right-buttons">
+                    <!-- Account Button -->
+                    <button id="account-btn" class="account-btn">
+                        <!-- User Icon SVG -->
+                        <img src="./profilesvg.svg" width="42" height="42" alt="Profile Icon">
+                    </button>
+                </div>
             </div>
+            <!-- Chat Content -->
             <div class="chat-content">
                 <div id="chat-box" class="chat-box">
+                    
                     <!-- Chat messages will be appended here by script.js -->
                 </div>
                 <!-- Input Area -->
@@ -84,16 +103,16 @@
         </div>
     </div>
 
+    <!-- Modals -->
+    <!-- Account Modal -->
     <div id="account-modal" class="modal">
         <div class="modal-content">
-            <!-- Remove close button if not needed -->
             <p class="username-display">Logged in as: <%= username %></p>
             <form action="/logout" method="POST">
                 <button type="submit" class="logout-btn">Logout</button>
             </form>
         </div>
     </div>
-    
     <!-- Chat Options Modal -->
     <div id="chat-options-modal" class="modal">
         <div class="modal-content">
@@ -103,12 +122,15 @@
             </ul>
         </div>
     </div>
-
-    <!-- Highlight.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-    <!-- Marked.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
-    <!-- Script -->
-    <script src="/script.js"></script>
+    <!-- Model Selector Modal -->
+    <div id="model-selector-modal" class="modal">
+        <div class="modal-content">
+            <ul>
+                <li data-model="gpt-4">GPT-4</li>
+                <li data-model="gpt-3.5-turbo">GPT-3.5 Turbo</li>
+                <!-- Add more models as needed -->
+            </ul>
+        </div>
+    </div>
 </body>
 </html>

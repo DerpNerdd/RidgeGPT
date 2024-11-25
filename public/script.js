@@ -13,12 +13,15 @@ const renameChatBtn = document.getElementById('rename-chat-btn');
 const deleteChatBtn = document.getElementById('delete-chat-btn');
 const accountBtn = document.getElementById('account-btn');
 const accountModal = document.getElementById('account-modal');
+const modelSelectorBtn = document.getElementById('model-selector-btn');
+const modelSelectorModal = document.getElementById('model-selector-modal');
 
 let canSendMessage = true; // Flag to control sending messages
 let conversation = []; // To store the conversation history
 let currentChatId = null; // To track the current chat ID
 let chatsData = []; // To store the list of chats
 let selectedChatId = null; // To keep track of which chat's options are being viewed
+let currentModel = 'gpt-4'; // Default model
 
 closeSidebarBtn.addEventListener('click', () => {
     sidebar.classList.add('hidden');
@@ -46,8 +49,49 @@ marked.setOptions({
         }
     },
 });
+
+modelSelectorBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleModelSelectorModal();
+});
+
+// Function to toggle model selector modal
+function toggleModelSelectorModal() {
+    // Close other modals if open
+    chatOptionsModal.classList.remove('visible');
+    accountModal.classList.remove('visible');
+
+    if (modelSelectorModal.classList.contains('visible')) {
+        modelSelectorModal.classList.remove('visible');
+    } else {
+        // Position the modal below the model selector button
+        const rect = modelSelectorBtn.getBoundingClientRect();
+        modelSelectorModal.style.top = rect.bottom + 'px';
+        modelSelectorModal.style.right = (window.innerWidth - rect.right) + 'px';
+        modelSelectorModal.classList.add('visible');
+    }
+}
+
+// Event listener for selecting a model
+modelSelectorModal.addEventListener('click', (e) => {
+    if (e.target.tagName === 'LI') {
+        const selectedModel = e.target.dataset.model;
+        setModel(selectedModel);
+        modelSelectorModal.classList.remove('visible');
+    }
+});
+
+// Function to set the current model
+function setModel(model) {
+    currentModel = model;
+    console.log('Model changed to:', currentModel);
+    // Optionally update UI to reflect the selected model
+}
+
+
 // Load chats on page load
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM fully loaded and parsed');
     await loadChats();
 });
 
@@ -261,7 +305,7 @@ newChatBtn.addEventListener('click', async () => {
 
 // Function to append messages to the chat box without typing animation
 const appendMessage = (role, content) => {
-    console.log(`Appending message. Role: ${role}, Content:`, content); // Log content
+    console.log(`Appending message. Role: ${role}, Content:`, content);
 
     const messageContainer = document.createElement('div');
     messageContainer.classList.add('message', role);
@@ -269,17 +313,23 @@ const appendMessage = (role, content) => {
     const messageContent = document.createElement('div');
     messageContent.classList.add('message-content');
 
-    if (role === 'bot') {
-        // Render the content using Marked.js for bot messages
-        messageContent.innerHTML = marked.parse(content);
-        processCodeBlocks(messageContent);
-    } else {
-        // For user messages, display as plain text to avoid markdown parsing
-        messageContent.textContent = content;
-    }
-
     messageContainer.appendChild(messageContent);
     chatBox.appendChild(messageContainer);
+
+    // Decode the Base64 content for all roles
+    const decodedContent = atob(content);
+
+    // Check for both 'bot' and 'assistant' roles
+    if (role === 'bot' || role === 'assistant') {
+        console.log('Decoded Content:', decodedContent);
+        const parsedHTML = marked.parse(decodedContent);
+        messageContent.innerHTML = parsedHTML;
+        // Process code blocks in the message content
+        processCodeBlocks(messageContent);
+    } else {
+        messageContent.textContent = decodedContent;
+    }
+
     chatBox.scrollTop = chatBox.scrollHeight;
 };
 
@@ -318,8 +368,8 @@ const removeTypingIndicator = () => {
 
 // Function to append messages with typing animation
 const appendMessageWithTyping = (role, content) => {
-    if (role !== 'bot') {
-        // For non-bot messages, fallback to appendMessage
+    // For non-assistant/bot messages, fallback to appendMessage
+    if (role !== 'bot' && role !== 'assistant') {
         appendMessage(role, content);
         return;
     }
@@ -334,9 +384,12 @@ const appendMessageWithTyping = (role, content) => {
     chatBox.appendChild(messageContainer);
     chatBox.scrollTop = chatBox.scrollHeight;
 
+    // Decode the Base64 content
+    const decodedContent = atob(content);
+
     // Parse the markdown content into HTML elements
     const parsedHTML = document.createElement('div');
-    parsedHTML.innerHTML = marked.parse(content);
+    parsedHTML.innerHTML = marked.parse(decodedContent);
 
     let typingSpeed = 10; // Typing speed in milliseconds per character
 
@@ -420,7 +473,7 @@ const chatWithBot = async (userMessage, isContinuation = false) => {
     }, 5000); // Delay of 5 seconds
 
     console.log('User message received:', userMessage);
-    appendMessage('user', userMessage); // Display user's message
+    appendMessage('user', btoa(userMessage)); // Encode user's message before displaying
 
     // Show typing indicator
     showTypingIndicator();
@@ -436,7 +489,8 @@ const chatWithBot = async (userMessage, isContinuation = false) => {
             },
             body: JSON.stringify({
                 chatId: currentChatId,
-                message: userMessage
+                message: userMessage,
+                model: currentModel // Include the selected model
             })
         });
 
@@ -448,7 +502,7 @@ const chatWithBot = async (userMessage, isContinuation = false) => {
             // Remove typing indicator in case of error
             removeTypingIndicator();
 
-            appendMessage('bot', 'Sorry, there was an error with the request.');
+            appendMessage('bot', btoa('Sorry, there was an error with the request.'));
             return;
         }
 
@@ -461,7 +515,7 @@ const chatWithBot = async (userMessage, isContinuation = false) => {
             removeTypingIndicator();
 
             // Append bot response with typing animation
-            appendMessageWithTyping('bot', assistantMessage.content);
+            appendMessageWithTyping('assistant', assistantMessage.content);
 
             console.log('Bot response appended:', assistantMessage.content);
 
@@ -470,23 +524,31 @@ const chatWithBot = async (userMessage, isContinuation = false) => {
                 // Update the local chat data to indicate it has a title
                 updateChatTitleInChats(currentChatId, data.title);
             }
-            // Optionally reload chats to update titles if necessary
-            // await loadChats(); // Comment out if you don't want to reload the entire chat list
         } else {
             // Remove typing indicator
             removeTypingIndicator();
 
             console.error('Unexpected response:', data);
-            appendMessage('bot', 'Sorry, I received an unexpected response.');
+            appendMessage('bot', btoa('Sorry, I received an unexpected response.'));
         }
     } catch (err) {
         // Remove typing indicator in case of error
         removeTypingIndicator();
 
         console.error('Error communicating with the server:', err);
-        appendMessage('bot', 'Sorry, there was an error during communication.');
+        appendMessage('bot', btoa('Sorry, there was an error during communication.'));
     }
 };
+
+// Close modals when clicking elsewhere
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.modal') && !e.target.closest('.account-btn') && !e.target.closest('.chat-options-btn') && !e.target.closest('.model-selector-btn')) {
+        chatOptionsModal.classList.remove('visible');
+        accountModal.classList.remove('visible');
+        modelSelectorModal.classList.remove('visible');
+    }
+});
+
 
 function animateChatTitle(chatId, fullTitle) {
     const chatItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"] .chat-title`);
@@ -708,61 +770,42 @@ document.addEventListener('click', (e) => {
 });
 
 function processCodeBlocks(container) {
-    // Handle code blocks to add copy buttons and headers
-    const codeBlocks = container.querySelectorAll('pre');
-    codeBlocks.forEach((preBlock) => {
-        const codeBlock = preBlock.querySelector('code');
-        if (codeBlock) {
-            // Get the language from the class (e.g., 'language-javascript')
-            let language = '';
-            codeBlock.classList.forEach((cls) => {
-                if (cls.startsWith('language-')) {
-                    language = cls.replace('language-', '');
-                }
+    const codeBlocks = container.querySelectorAll('pre code');
+    codeBlocks.forEach((codeBlock) => {
+        // Highlight the code block using Highlight.js
+        hljs.highlightElement(codeBlock);
+
+        // Wrap the code block for additional features (e.g., copy button)
+        const preBlock = codeBlock.parentElement;
+        const codeContainer = document.createElement('div');
+        codeContainer.classList.add('code-container');
+
+        const codeHeader = document.createElement('div');
+        codeHeader.classList.add('code-header');
+
+        const languageSpan = document.createElement('span');
+        languageSpan.classList.add('code-language');
+        const language = codeBlock.className.replace('language-', '');
+        languageSpan.textContent = language;
+
+        const copyButton = document.createElement('button');
+        copyButton.classList.add('copy-button');
+        copyButton.textContent = 'Copy';
+
+        copyButton.addEventListener('click', () => {
+            navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+                copyButton.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyButton.textContent = 'Copy';
+                }, 2000);
             });
+        });
 
-            // Wrap the code block in a div
-            const codeContainer = document.createElement('div');
-            codeContainer.classList.add('code-container');
+        codeHeader.appendChild(languageSpan);
+        codeHeader.appendChild(copyButton);
+        codeContainer.appendChild(codeHeader);
+        codeContainer.appendChild(preBlock.cloneNode(true));
 
-            // Create a header for the code block
-            const codeHeader = document.createElement('div');
-            codeHeader.classList.add('code-header');
-
-            const languageSpan = document.createElement('span');
-            languageSpan.classList.add('code-language');
-            languageSpan.textContent = language || '';
-
-            // Create a copy button
-            const copyButton = document.createElement('button');
-            copyButton.classList.add('copy-button');
-            copyButton.textContent = 'Copy';
-
-            // Add copy functionality
-            copyButton.addEventListener('click', () => {
-                // Copy code to clipboard
-                navigator.clipboard.writeText(codeBlock.textContent).then(() => {
-                    copyButton.textContent = 'Copied!';
-                    setTimeout(() => {
-                        copyButton.textContent = 'Copy';
-                    }, 2000);
-                });
-            });
-
-            codeHeader.appendChild(languageSpan);
-            codeHeader.appendChild(copyButton);
-
-            // Append header to code container
-            codeContainer.appendChild(codeHeader);
-
-            // Move the code block into the container
-            codeContainer.appendChild(preBlock.cloneNode(true));
-
-            // Replace the original pre element with the container
-            preBlock.parentNode.replaceChild(codeContainer, preBlock);
-
-            // Highlight the code block using Highlight.js
-            hljs.highlightElement(codeBlock);
-        }
+        preBlock.parentElement.replaceChild(codeContainer, preBlock);
     });
 }

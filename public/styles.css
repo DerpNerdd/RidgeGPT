@@ -1,3 +1,10 @@
+/* styles.css */
+
+/* Global box-sizing reset */
+* {
+    box-sizing: border-box;
+}
+
 @font-face {
     font-family: Montserrat;
     src: url(./Montserrat-VariableFont_wght.ttf);
@@ -15,7 +22,8 @@ body {
 .chat-container {
     display: flex;
     flex: 1;
-    height: 100vh;
+    width: 100%;
+    overflow: hidden; /* Prevent overall scrollbars */
 }
 
 /* Sidebar Styles */
@@ -25,7 +33,6 @@ body {
     display: flex;
     flex-direction: column;
     padding: 10px;
-    box-sizing: border-box;
     position: fixed;
     top: 0;
     left: 0;
@@ -89,7 +96,6 @@ body {
 
 #chat-list {
     margin-top: 20px;
-    overflow-y: auto;
 }
 
 #chat-list::-webkit-scrollbar {
@@ -216,65 +222,121 @@ body {
     text-align: center;
 }
 
+/* Main Content */
 .main {
     flex: 1;
     display: flex;
     flex-direction: column;
     background-color: #212121;
-    align-items: center;
-    margin-left: 300px;
-    /* Remove height and overflow-y properties */
-    /* height: 100vh; */
-    /* overflow-y: hidden; */
     position: relative;
     transition: margin-left 0.3s ease;
+    overflow: hidden; /* Prevent unwanted scrollbars */
+    padding-top: 80px;
+    padding-bottom: 80px; /* Height of the navbar */
 }
 
 .main.collapsed {
     margin-left: 0;
 }
 
-.show-sidebar-btn {
-    position: absolute;
-    top: 10px;
-    left: 10px;
+.main:not(.collapsed) {
+    margin-left: 300px; /* Width of the sidebar */
+}
+
+/* Top Buttons Container */
+.top-buttons {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 80px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 1000; /* Ensure navbar stays on top */
+    background-color: #212121;
+    transition: left 0.3s ease;
+}
+
+.main.collapsed .top-buttons {
+    left: 0;
+}
+
+.main:not(.collapsed) .top-buttons {
+    left: 300px; /* Width of the sidebar */
+    width: calc(100% - 300px);
+}
+
+.left-buttons,
+.right-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.left-buttons button,
+.right-buttons button {
     background: none;
     border: none;
-    color: #dcdcdc;
     cursor: pointer;
     padding: 8px;
-    transition: opacity 0.3s ease; /* Add transition */
-    opacity: 0;
-    pointer-events: none;
+    color: #dcdcdc;
 }
 
-.show-sidebar-btn.visible {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.show-sidebar-btn:hover {
+.left-buttons button:hover,
+.right-buttons button:hover {
     color: #fff;
 }
 
-.chat-content {
-    width: 100%;
-    max-width: 800px;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    /* Remove height */
-    /* height: calc(100vh - [height of input area]); */
+.model-selector-btn {
+    margin-left: 10px;
+    display: inline-flex;
+    align-items: center;
 }
 
-/* Adjust .chat-box to have proper scrolling */
+.model-selector-btn svg {
+    width: 32px;
+    height: 32px;
+}
+
+.account-btn img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+}
+
+/* Show Sidebar Button Visibility */
+.show-sidebar-btn {
+    display: none;
+}
+
+.main.collapsed .show-sidebar-btn {
+    display: inline-block;
+}
+
+.show-sidebar-btn svg {
+    width: 32px;
+    height: 32px;
+}
+
+/* Chat Content */
+.chat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent scrollbars */
+}
+
+/* Chat Box */
 .chat-box {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    position: relative; /* For pseudo-element positioning */
+    position: relative;
+    margin-bottom: 80px; /* Height of the input area */
 }
 
 .chat-box::before {
@@ -285,12 +347,11 @@ body {
     width: 100%;
     height: 100%;
     background: url('./backridgelogo.png') no-repeat center center/cover;
-    background-size: 25%; /* Set the size to 50% of the container */
-    opacity: 0.1; /* Adjust for opacity (more opaque) */
-    z-index: 1; /* Ensure it stays behind the content */
-    pointer-events: none; /* Prevent interactions */
+    background-size: 25%; /* Adjust as needed */
+    opacity: 0.1;
+    z-index: 1;
+    pointer-events: none;
 }
-
 
 .chat-box::-webkit-scrollbar {
     width: 8px;
@@ -305,45 +366,129 @@ body {
     background-color: #2e2e2e;
 }
 
-/* Message Styles */
+/* Messages */
 .message {
     margin-bottom: 10px;
     padding: 8px 12px;
     display: flex;
     flex-direction: column;
+    word-wrap: break-word;
 }
 
 .message.user {
     background-color: #2f2f2f;
-    align-self: flex-end;
+    align-self: flex-end; /* Keep it aligned to the right */
     border-radius: 8px;
-    max-width: 75%;
-    margin-right: 10px;
-    
+    max-width: 60%; /* Consistent width for messages */
+    margin: 10px 300px 10px auto; /* Increase left margin to shift it left */
+    text-align: left; /* Keep text readable */
+    word-wrap: break-word; /* Ensure text wraps properly */
 }
 
-.message.bot {
-    align-self: flex-start;
-    max-width: 75%;
-    margin-left: 10px;
+
+.message.assistant {
+    align-self: center; /* This already aligns bot messages */
+    border-radius: 8px;
+    max-width: 60%;
+    margin: 10px auto; /* This centers horizontally */
 }
 
 .message-content {
-    font-size: 14px;
+    font-size: 16px;
     height: auto;
 }
 
 /* Code Block Styles */
-/* (Same as before) */
+.code-container {
+    position: relative;
+    background-color: #2d2d2d;
+    border-radius: 8px;
+    margin: 16px 0;
+    z-index: 1; /* Ensure code blocks are below the navbar */
+    overflow: hidden;
+    border: 1px solid #3c3c3c;
+}
 
-/* Input Area Styles */
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #3c3c3c;
+    padding: 8px 12px;
+    font-family: "Montserrat", sans-serif;
+}
+
+.code-language {
+    font-size: 12px;
+    color: #e0e0e0;
+}
+
+.code-container pre {
+    margin: 0;
+    padding: 16px;
+    background-color: #2d2d2d;
+    color: #f8f8f8;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 14px;
+    overflow-x: auto;
+}
+
+.code-container pre::-webkit-scrollbar {
+    height: 8px;
+}
+
+.code-container pre::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 4px;
+}
+
+.code-container .copy-button {
+    background-color: transparent;
+    color: #dcdcdc;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: "Montserrat", sans-serif;
+}
+
+.code-container .copy-button:hover {
+    background-color: #4a4a4a;
+}
+
+.code-container .copy-button:active {
+    background-color: #5a5a5a;
+}
+
+.code-container .copy-button:focus {
+    outline: none;
+}
+
+/* Highlight.js code styling overrides */
+.hljs {
+    background: none;
+    color: inherit;
+}
+
+/* Input Area */
 .input-area {
     background-color: #212121;
     padding: 10px;
     width: 100%;
-    position: sticky;
+    position: fixed;
     bottom: 0;
-    z-index: 1;
+    left: 0;
+    z-index: 1000;
+}
+
+.main.collapsed .input-area {
+    left: 0;
+}
+
+.main:not(.collapsed) .input-area {
+    left: 300px; /* Width of the sidebar */
+    width: calc(100% - 300px);
 }
 
 #chat-form {
@@ -354,13 +499,13 @@ body {
 
 #user-input {
     flex: 1;
-    max-width: 600px; /* Thinner width */
+    max-width: 900px;
     resize: none;
     padding: 12px 16px;
     font-size: 16px;
     line-height: 1.5;
     border: 1px solid #565656;
-    border-radius: 12px; /* More border radius */
+    border-radius: 24px;
     background-color: #2f2f2f;
     color: #fff;
     outline: none;
@@ -393,7 +538,6 @@ body {
     fill: #fff;
 }
 
-
 /* Footer Text */
 .footer-text {
     text-align: center;
@@ -401,6 +545,7 @@ body {
     font-size: 12px;
     margin-top: 10px;
 }
+
 .typing-indicator {
     display: flex;
     align-items: center;
@@ -430,6 +575,91 @@ body {
     animation-delay: 0.6s;
 }
 
+/* Modals */
+.modal {
+    display: none; /* Hidden by default */
+    position: absolute;
+    z-index: 1000; /* On top of other elements */
+    background-color: #2f2f2f;
+    border: 1px solid #888;
+    border-radius: 8px;
+    color: #dcdcdc;
+    min-width: 150px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.modal.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.modal-content {
+    padding: 10px;
+}
+
+.close-modal-btn {
+    color: #dcdcdc;
+    float: right;
+    font-size: 18px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.close-modal-btn:hover,
+.close-modal-btn:focus {
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.modal-content li {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #444;
+}
+
+.modal-content li:last-child {
+    border-bottom: none;
+}
+
+.modal-content li:hover {
+    background-color: #3a3a3a;
+}
+
+/* Positioning for Account Modal */
+#account-modal {
+    right: 10px;
+    top: 80px; /* Adjusted for navbar height */
+}
+
+/* Positioning for Chat Options Modal */
+#chat-options-modal {
+    /* Position will be set dynamically in script.js */
+}
+
+/* Optional: Adjust the position of the triangle indicator */
+.modal::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 20px;
+    border-width: 0 8px 8px 8px;
+    border-style: solid;
+    border-color: transparent transparent #2f2f2f transparent;
+}
+
 /* Auth Page Container */
 .auth-page-container {
     display: flex;
@@ -438,7 +668,7 @@ body {
     min-height: 100vh;
     width: 100vw;
     background-color: #121212;
-    position: relative; /* Necessary for the overlay effect */
+    position: relative;
     overflow: hidden;
     margin: 0;
 }
@@ -456,7 +686,6 @@ body {
     z-index: 1; /* Places it behind the form */
     pointer-events: none; /* Prevent interactions */
 }
-
 
 /* Auth Card */
 .auth-card {
@@ -537,237 +766,6 @@ body {
     margin-top: -10px;
     margin-bottom: 10px;
     display: block;
-  }
-  
-
-/* Sidebar Styles */
-.logout-btn {
-    background-color: #2f2f2f;
-    color: #dcdcdc;
-    border: 1px solid #8e8e8e;
-    border-radius: 5px;
-    padding: 10px;
-    font-size: 14px;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 10px;
-}
-
-.logout-btn:hover {
-    background-color: #454545;
-}
-
-.username-display {
-    margin-top: 20px;
-    color: #8e8e8e;
-    font-size: 14px;
-}
-
-#chat-list {
-    margin-top: 20px;
-    overflow-y: auto;
-}
-
-.chat-item {
-    padding: 10px;
-    cursor: pointer;
-    color: #dcdcdc;
-    border-bottom: 1px solid #3a3a3a;
-}
-
-.chat-item:hover {
-    background-color: #3a3a3a;
-}
-
-.chat-item.active {
-    background-color: #4a4a4a;
-    font-weight: bold;
-}
-
-.chat-title.animating {
-    user-select: none;
-}
-
-.modal {
-    display: none; /* Hidden by default */
-    position: absolute;
-    z-index: 1000; /* On top of other elements */
-    background-color: #2f2f2f;
-    border: 1px solid #888;
-    border-radius: 8px;
-    color: #dcdcdc;
-    min-width: 150px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.modal.visible {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.modal-content {
-    padding: 10px;
-}
-
-.close-modal-btn {
-    color: #dcdcdc;
-    float: right;
-    font-size: 18px;
-    font-weight: bold;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-.close-modal-btn:hover,
-.close-modal-btn:focus {
-    color: #fff;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.modal-content ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.modal-content li {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #444;
-}
-
-.modal-content li:last-child {
-    border-bottom: none;
-}
-
-.modal-content li:hover {
-    background-color: #3a3a3a;
-}
-
-/* Positioning for Account Modal */
-#account-modal {
-    right: 10px;
-    top: 50px;
-}
-
-/* Positioning for Chat Options Modal */
-#chat-options-modal {
-    /* Position will be set dynamically in script.js */
-}
-
-/* Optional: Adjust the position of the triangle indicator */
-.modal::after {
-    content: '';
-    position: absolute;
-    top: -8px; /* Adjust as needed */
-    left: 20px; /* Adjust as needed for alignment */
-    border-width: 0 8px 8px 8px;
-    border-style: solid;
-    border-color: transparent transparent #2f2f2f transparent;
-}
-
-.account-button-container {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-}
-
-.account-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-    color: #dcdcdc;
-}
-
-.account-btn:hover {
-    color: #fff;
-}
-
-.code-container {
-    position: relative;
-    background-color: #2d2d2d;
-    border-radius: 8px;
-    margin: 16px 0;
-    overflow: hidden;
-    border: 1px solid #3c3c3c;
-}
-
-.code-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #3c3c3c;
-    padding: 8px 12px;
-    font-family: "Montserrat", sans-serif;
-}
-
-.code-language {
-    font-size: 12px;
-    color: #e0e0e0;
-}
-
-.code-container pre {
-    margin: 0;
-    padding: 16px;
-    background-color: #2d2d2d;
-    color: #f8f8f8;
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 14px;
-    overflow-x: auto;
-}
-
-.code-container pre::-webkit-scrollbar {
-    height: 8px;
-}
-
-.code-container pre::-webkit-scrollbar-thumb {
-    background-color: #555;
-    border-radius: 4px;
-}
-
-.code-container .copy-button {
-    background-color: transparent;
-    color: #dcdcdc;
-    border: none;
-    padding: 4px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    font-family: "Montserrat", sans-serif;
-}
-
-.code-container .copy-button:hover {
-    background-color: #4a4a4a;
-}
-
-.code-container .copy-button:active {
-    background-color: #5a5a5a;
-}
-
-.code-container .copy-button:focus {
-    outline: none;
-}
-
-/* Optional: Highlight.js code styling overrides */
-.hljs {
-    background: none;
-    color: inherit;
-}
-
-@keyframes typing {
-    0%, 80%, 100% {
-        opacity: 0.4;
-    }
-    40% {
-        opacity: 1;
-    }
 }
 
 /* Media Queries */
@@ -791,5 +789,14 @@ body {
 
     #send-btn {
         margin-left: 0;
+    }
+}
+
+@keyframes typing {
+    0%, 80%, 100% {
+        opacity: 0.4;
+    }
+    40% {
+        opacity: 1;
     }
 }

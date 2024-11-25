@@ -125,94 +125,102 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
   console.log('Chat endpoint hit with data:', req.body);
 
   try {
-    const { chatId, message } = req.body;
+      const { chatId, message, model } = req.body;
 
-    if (!chatId) {
-      return res.status(400).json({ error: 'No chat ID provided. Please provide a chat ID.' });
-    }
+      if (!chatId) {
+          return res.status(400).json({ error: 'No chat ID provided. Please provide a chat ID.' });
+      }
 
-    // Find the chat associated with the user
-    const chat = await Chat.findOne({ _id: chatId, user: req.session.userId });
+      // Use the model parameter, default to 'gpt-4' if not provided
+      const selectedModel = model || 'gpt-4';
 
-    if (!chat) {
-      return res.status(404).json({ error: 'Chat not found.' });
-    }
+      // Find the chat associated with the user
+      const chat = await Chat.findOne({ _id: chatId, user: req.session.userId });
 
-    // Append the new user message to the chat
-    const userMessage = { role: 'user', content: message };
-    chat.messages.push(userMessage);
+      if (!chat) {
+          return res.status(404).json({ error: 'Chat not found.' });
+      }
 
-    await chat.save();
+      // Append the new user message to the chat
+      const userMessage = { role: 'user', content: message };
+      chat.messages.push(userMessage);
 
-    // Prepare messages for the API call
-    const messages = chat.messages.map(msg => ({
-      role: msg.role,
-      content: msg.content,
-    }));
-
-    // Send the conversation to OpenAI API
-    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-      model: 'gpt-4o',
-      messages: messages,
-      temperature: 0.7,
-    }, {
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    console.log('Received response from OpenAI API:', response.data);
-
-    const assistantMessage = response.data.choices[0].message;
-    // Append the assistant's message to the chat
-    chat.messages.push(assistantMessage);
-    await chat.save();
-
-    let chatTitle = chat.title;
-
-    // If the chat doesn't have a title yet, generate one
-    if (!chatTitle) {
-      // Generate chat title using OpenAI
-      const titleResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an assistant that generates extremely concise, simple, and descriptive titles for conversations. Provide a title of 1 to 3 words that best represents the following conversation. Do not include any preamble, labels, or extra text—just provide the title itself without quotation marks or punctuation.'
-          },
-          {
-            role: 'user',
-            content: chat.messages.map(msg => msg.content).join('\n')
-          },
-        ],
-        temperature: 0.3,
-        max_tokens: 5,
-      }, {
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      });
-    
-      let titleMessage = titleResponse.data.choices[0].message.content.trim();
-    
-      // Remove leading/trailing quotation marks and any "Title:" prefix
-      titleMessage = titleMessage.replace(/^["']|["']$/g, '').replace(/^[Tt]itle\s*[:\-–—]?\s*/, '');
-    
-      chat.title = titleMessage;
       await chat.save();
-    
-      chatTitle = titleMessage;
-    }
 
-  
+      // Prepare messages for the API call
+      const messages = chat.messages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+      }));
 
-    res.json({ success: true, message: assistantMessage, title: chatTitle });
+      // Send the conversation to OpenAI API
+      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+          model: selectedModel,
+          messages: messages,
+          temperature: 0.7,
+      }, {
+          headers: {
+              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
+          },
+      });
+
+      console.log('Received response from OpenAI API:', response.data);
+
+      const assistantMessage = response.data.choices[0].message;
+
+      // Append the assistant's message to the chat
+      chat.messages.push(assistantMessage);
+      await chat.save();
+
+      let chatTitle = chat.title;
+
+      // If the chat doesn't have a title yet, generate one
+      if (!chatTitle) {
+          // Generate chat title using OpenAI
+          const titleResponse = await axios.post('https://api.openai.com/v1/chat/completions', {
+              model: selectedModel, // Use the selected model
+              messages: [
+                  {
+                      role: 'system',
+                      content: 'You are an assistant that generates extremely concise, simple, and descriptive titles for conversations. Provide a title of 1 to 3 words that best represents the following conversation. Do not include any preamble, labels, or extra text—just provide the title itself without quotation marks or punctuation.'
+                  },
+                  {
+                      role: 'user',
+                      content: chat.messages.map(msg => msg.content).join('\n')
+                  },
+              ],
+              temperature: 0.3,
+              max_tokens: 5,
+          }, {
+              headers: {
+                  'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                  'Content-Type': 'application/json',
+              },
+          });
+
+          let titleMessage = titleResponse.data.choices[0].message.content.trim();
+
+          // Remove leading/trailing quotation marks and any "Title:" prefix
+          titleMessage = titleMessage.replace(/^["']|["']$/g, '').replace(/^[Tt]itle\s*[:\-–—]?\s*/, '');
+
+          chat.title = titleMessage;
+          await chat.save();
+
+          chatTitle = titleMessage;
+      }
+
+      // Encode the assistant's message content before sending to client
+      const encodedAssistantMessage = {
+          role: assistantMessage.role,
+          content: Buffer.from(assistantMessage.content, 'utf8').toString('base64'),
+      };
+
+      res.json({ success: true, message: encodedAssistantMessage, title: chatTitle });
   } catch (error) {
-    // Log detailed errors for troubleshooting
-    console.error('Error communicating with OpenAI API:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Error communicating with OpenAI API', details: error.response ? error.response.data : error.message });
+      // Log detailed errors for troubleshooting
+      console.error('Error communicating with OpenAI API:', error.response ? error.response.data : error.message);
+      res.status(500).json({ error: 'Error communicating with OpenAI API', details: error.response ? error.response.data : error.message });
   }
 });
 
@@ -250,22 +258,28 @@ app.get('/api/chats', authMiddleware, async (req, res) => {
 
 // API Route to get messages of a chat
 app.get('/api/chats/:id', authMiddleware, async (req, res) => {
-    try {
-      const chatId = req.params.id;
-      const chat = await Chat.findOne({ _id: chatId, user: req.session.userId });
-  
-      if (!chat) {
-        return res.status(404).json({ error: 'Chat not found.' });
-      }
-  
-      // Ensure that the content is sent as-is without modification
-      res.json({ success: true, chat });
-    } catch (err) {
-      console.error('Error fetching chat:', err);
-      res.status(500).json({ error: 'An error occurred while fetching the chat.' });
+  try {
+    const chatId = req.params.id;
+    const chat = await Chat.findOne({ _id: chatId, user: req.session.userId });
+
+    if (!chat) {
+      return res.status(404).json({ error: 'Chat not found.' });
     }
-  });
-  
+
+    // Create a copy of the chat to avoid mutating the original
+    const chatCopy = JSON.parse(JSON.stringify(chat));
+
+    // Encode the message content using Base64
+    chatCopy.messages.forEach((message) => {
+      message.content = Buffer.from(message.content, 'utf8').toString('base64');
+    });
+
+    res.json({ success: true, chat: chatCopy });
+  } catch (err) {
+    console.error('Error fetching chat:', err);
+    res.status(500).json({ error: 'An error occurred while fetching the chat.' });
+  }
+});
 
 
 app.delete('/api/chats/:id', authMiddleware, async (req, res) => {
