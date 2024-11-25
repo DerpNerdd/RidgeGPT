@@ -10,7 +10,7 @@ Clone project using git
 
 ```bash
 git clone https://github.com/DerpNerdd/RidgeGPT.git
-cd ChatGPT
+cd RidgeGPT
 ```
 
 Download Dependencies
