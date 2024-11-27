@@ -51,6 +51,16 @@
             <div id="chat-list">
                 <!-- Chat list will be populated here -->
             </div>
+
+            <div class="version-info">
+                <span class="version-text">Version 0.0.1 BETA</span>
+                <button id="version-info-btn" class="version-info-btn" title="View Changelog">
+                    <!-- Information Circle Icon -->
+                    <svg width="16" height="16" viewBox="0 0 24 24">
+                        <path fill="#dcdcdc" d="M12,2A10,10 0 1,0 22,12A10,10 0 0,0 12,2M11,17V11H13V17H11M11,7V9H13V7H11Z" />
+                    </svg>
+                </button>
+            </div>
         </div>
         <!-- Main Chat Area -->
         <div class="main" id="main-content">
@@ -66,9 +76,9 @@
                     </button>
                     <!-- Model Selector Button -->
                     <button id="model-selector-btn" class="model-selector-btn">
-                        <!-- Model Icon SVG -->
-                        <svg width="32" height="32" viewBox="0 0 24 24">
-                            <path fill="#dcdcdc" d="M12,2A10,10 0 1,1 2,12A10,10 0 0,1 12,2M11,6H13V13H11V6M11,16H13V18H11V16Z" />
+                        <span id="selected-model">ChatGPT 4</span>
+                        <svg class="down-arrow" width="12" height="12" viewBox="0 0 24 24">
+                            <path fill="#dcdcdc" d="M7 10l5 5 5-5z"/>
                         </svg>
                     </button>
                 </div>
@@ -83,7 +93,6 @@
             <!-- Chat Content -->
             <div class="chat-content">
                 <div id="chat-box" class="chat-box">
-                    
                     <!-- Chat messages will be appended here by script.js -->
                 </div>
                 <!-- Input Area -->
@@ -97,7 +106,7 @@
                             </svg>
                         </button>
                     </form>
-                    <p class="footer-text">RidgeGPT - Not affiliated with OpenAI</p>
+                    <p class="footer-text">RidgeGPT - Not affiliated with OpenAI. ChatGPT can make mistakes. Check important info.</p>
                 </div>
             </div>
         </div>
@@ -126,11 +135,54 @@
     <div id="model-selector-modal" class="modal">
         <div class="modal-content">
             <ul>
-                <li data-model="gpt-4">GPT-4</li>
-                <li data-model="gpt-3.5-turbo">GPT-3.5 Turbo</li>
-                <!-- Add more models as needed -->
+                <!-- <li data-model="o1-preview">
+                    <div class="model-name">GPT-o1-preview</div>
+                    <div class="model-description">Uses Advanced Reasoning</div>
+                </li>
+                <li data-model="o1-mini">
+                    <div class="model-name">GPT-o1-mini</div>
+                    <div class="model-description">Faster at reasoning</div>
+                </li> -->
+                <li data-model="gpt-4o">
+                    <div class="model-name">GPT-4o</div>
+                    <div class="model-description">Great for most tasks</div>
+                </li>
+                <li data-model="gpt-4o-mini">
+                    <div class="model-name">GPT-4o-mini</div>
+                    <div class="model-description">Faster for everyday tasks</div>
+                </li>
+                <li data-model="gpt-4">
+                    <div class="model-name">GPT-4</div>
+                    <div class="model-description">Legacy Model</div>
+                </li>
+                <li data-model="gpt-3.5-turbo">
+                    <div class="model-name">GPT-3.5</div>
+                    <div class="model-description">Efficient and versatile</div>
+                </li>
             </ul>
         </div>
     </div>
+
+    <div id="search-modal" class="modal search-modal">
+        <div class="modal-content">
+            <button class="close-modal-btn" id="close-search-modal-btn">&times;</button>
+            <input type="text" id="search-input" placeholder="Search chats...">
+            <div id="search-results">
+                <!-- Search results will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <div id="version-info-modal" class="modal version-modal">
+        <div class="modal-content">
+            <h2>Changelog</h2>
+            <ul>
+                <li><strong>Version 0.0.1 BETA</strong> - Initial release with core features and basic UI. Will be working more on bug fixes over time and adding new features.</li>
+                <!-- Add more changelog entries here -->
+            </ul>
+            <button id="close-version-modal-btn" class="close-modal-btn">&times;</button>
+        </div>
+    </div>
+    
 </body>
 </html>

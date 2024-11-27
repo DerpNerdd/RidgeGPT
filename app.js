@@ -153,18 +153,24 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
           content: msg.content,
       }));
 
+      // let temperature = 0.7;
+      // if (selectedModel === 'o1-preview' || selectedModel === 'o1-mini') {
+      //     temperature = 1; 
+      // }
+
       // Send the conversation to OpenAI API
       const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-          model: selectedModel,
-          messages: messages,
-          temperature: 0.7,
-      }, {
-          headers: {
-              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-              'Content-Type': 'application/json',
-          },
-      });
+        model: selectedModel,
+        messages: messages,
+        temperature: 0.7,
+    }, {
+        headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
+        },
+    });
 
+      
       console.log('Received response from OpenAI API:', response.data);
 
       const assistantMessage = response.data.choices[0].message;

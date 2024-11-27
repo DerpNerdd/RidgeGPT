@@ -292,11 +292,196 @@ body {
     margin-left: 10px;
     display: inline-flex;
     align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #dcdcdc;
+    font-size: 16px;
+    font-family: "Montserrat", sans-serif;
 }
 
-.model-selector-btn svg {
-    width: 32px;
-    height: 32px;
+.model-selector-btn:hover {
+    color: #fff;
+}
+
+@font-face {
+    font-family: NotoSans;
+    src: url(./NotoSans-VariableFont_wdth\,wght.ttf);
+}
+
+#selected-model {
+    margin-right: 5px;
+    font-family: NotoSans, sans-serif;
+    font-size: 20px;
+    color: #B4B4B4;
+}
+
+.model-selector-btn .down-arrow {
+    fill: #dcdcdc;
+}
+
+.model-selector-btn:hover .down-arrow {
+    fill: #fff;
+}
+
+/* Modal Styles for Model Selector */
+#model-selector-modal {
+    right: 10px;
+    top: 80px; /* Adjusted for navbar height */
+}
+
+#model-selector-modal .modal-content {
+    padding: 10px;
+    width: 350px; /* Allow width to adjust based on content */
+    max-width: 350px; /* Set maximum width */
+    box-sizing: border-box;
+}
+
+#model-selector-modal ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#model-selector-modal li {
+    display: flex; /* Use flexbox for layout */
+    flex-direction: column;
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #444;
+    word-wrap: break-word; /* Ensure text wraps */
+    overflow-wrap: break-word; /* For wider browser support */
+}
+
+#model-selector-modal li:last-child {
+    border-bottom: none;
+}
+
+#model-selector-modal li:hover {
+    background-color: #3a3a3a;
+}
+
+#model-selector-modal .model-name {
+    font-weight: bold;
+    font-size: 16px;
+    color: #dcdcdc;
+}
+
+#model-selector-modal .model-description {
+    font-size: 12px;
+    color: #aaaaaa;
+    margin-top: 4px;
+}
+
+
+/* Search Modal Specific Styles */
+.search-modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px; /* Increased width */
+    max-width: 90%; /* Ensure it doesn't exceed viewport width */
+    height: auto; /* Let height adjust based on content */
+    max-height: 90%; /* Ensure it doesn't exceed viewport height */
+    background-color: #2F2F2F;
+    border-radius: 12px;
+    z-index: 2000; /* Ensure it appears above other elements */
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    padding: 20px; /* Added padding */
+}
+
+.search-modal.visible {
+    display: block;
+}
+
+.search-modal .modal-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.close-modal-btn {
+    background: none;
+    border: none;
+    color: #6b7280; /* Lighter color */
+    font-size: 28px; /* Increased size */
+    position: absolute;
+    top: 20px; /* Lowered position */
+    right: 20px; /* Adjusted right position */
+    cursor: pointer;
+}
+
+.close-modal-btn:hover {
+    color: #ffffff; /* Change color on hover */
+}
+
+#search-input {
+    width: 100%;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: 1px solid #3a3a3a;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    font-size: 16px;
+    outline: none;
+}
+
+#search-input:focus {
+    border-color: #4a90e2;
+}
+
+#search-input::placeholder {
+    color: #8e8e8e;
+}
+
+#search-results {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.search-section {
+    margin-bottom: 20px;
+}
+
+.search-section h3 {
+    font-size: 12px; /* Smaller text */
+    color: #ffffff; /* White color */
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    font-weight: normal;
+}
+
+.search-chat-item {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0;
+    cursor: pointer;
+    color: #dcdcdc;
+    border-bottom: 1px solid #444; /* Gray line separator */
+}
+
+.search-chat-item:hover {
+    background-color: #2a2a2a; /* Subtle hover effect */
+}
+
+.search-chat-item:last-child {
+    border-bottom: none;
+}
+
+.search-chat-title {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.search-chat-snippet {
+    font-size: 14px;
+    color: #aaaaaa;
+    margin-top: 4px;
 }
 
 .account-btn img {
@@ -379,23 +564,66 @@ body {
     background-color: #2f2f2f;
     align-self: flex-end; /* Keep it aligned to the right */
     border-radius: 8px;
-    max-width: 60%; /* Consistent width for messages */
-    margin: 10px 300px 10px auto; /* Increase left margin to shift it left */
+    max-width: 60%; /* Default width */
+    margin: 10px auto 10px auto; /* Centered by default */
     text-align: left; /* Keep text readable */
     word-wrap: break-word; /* Ensure text wraps properly */
 }
 
 
-.message.assistant {
-    align-self: center; /* This already aligns bot messages */
+.message.assistant,
+.message.bot {
+    align-self: center;
     border-radius: 8px;
     max-width: 60%;
-    margin: 10px auto; /* This centers horizontally */
+    margin: 10px auto;
+    text-align: left;
+    word-wrap: break-word;
 }
 
 .message-content {
     font-size: 16px;
     height: auto;
+}
+
+@media screen and (min-width: 1400px) {
+    .message.user,
+    .message.assistant {
+        max-width: 50%; /* Reduce width on larger screens */
+    }
+}
+
+/* For screens between 1000px and 1399px */
+@media screen and (min-width: 1000px) and (max-width: 1399px) {
+    .message.user,
+    .message.assistant {
+        max-width: 60%; /* Default width */
+    }
+}
+
+/* For screens between 800px and 999px */
+@media screen and (min-width: 800px) and (max-width: 999px) {
+    .message.user,
+    .message.assistant {
+        max-width: 70%; /* Slightly wider on smaller screens */
+    }
+}
+
+/* For screens between 600px and 799px */
+@media screen and (min-width: 600px) and (max-width: 799px) {
+    .message.user,
+    .message.assistant {
+        max-width: 80%; /* Increase width on smaller screens */
+    }
+}
+
+/* For screens narrower than 600px (optional) */
+@media screen and (max-width: 599px) {
+    .message.user,
+    .message.assistant {
+        max-width: 90%; /* Almost full width */
+        margin: 10px 5%; /* Add horizontal margin */
+    }
 }
 
 /* Code Block Styles */
@@ -578,24 +806,33 @@ body {
 /* Modals */
 .modal {
     display: none; /* Hidden by default */
-    position: absolute;
-    z-index: 1000; /* On top of other elements */
-    background-color: #2f2f2f;
+    position: fixed;
+    z-index: 1000;
+    background-color: #2F2F2F;
     border: 1px solid #888;
     border-radius: 8px;
     color: #dcdcdc;
     min-width: 150px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+}
+
+.modal.visible {
+    display: block;
+    /* opacity and transform properties removed */
+}
+
+.modal:not(.search-modal) {
     opacity: 0;
     transform: translateY(-10px);
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.modal.visible {
-    display: block;
+.modal.visible:not(.search-modal) {
     opacity: 1;
     transform: translateY(0);
 }
+
 
 .modal-content {
     padding: 10px;
@@ -640,8 +877,7 @@ body {
 
 /* Positioning for Account Modal */
 #account-modal {
-    right: 10px;
-    top: 80px; /* Adjusted for navbar height */
+    /* Position will be set dynamically in script.js */
 }
 
 /* Positioning for Chat Options Modal */
@@ -649,15 +885,8 @@ body {
     /* Position will be set dynamically in script.js */
 }
 
-/* Optional: Adjust the position of the triangle indicator */
-.modal::after {
-    content: '';
-    position: absolute;
-    top: -8px;
-    left: 20px;
-    border-width: 0 8px 8px 8px;
-    border-style: solid;
-    border-color: transparent transparent #2f2f2f transparent;
+#model-selector-modal {
+    /* Position is set dynamically in script.js */
 }
 
 /* Auth Page Container */
@@ -767,6 +996,105 @@ body {
     margin-bottom: 10px;
     display: block;
 }
+
+.version-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    font-size: 12px;
+    color: #8e8e8e;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    border-top: 1px solid #2a2a2a;
+    background-color: #171717;
+}
+
+.version-text {
+    margin-right: 5px;
+}
+
+.version-info-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.version-info-btn svg {
+    fill: #8e8e8e;
+    width: 16px;
+    height: 16px;
+}
+
+.version-info-btn:hover svg {
+    fill: #ffffff;
+}
+
+/* Version Info Modal */
+.version-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    width: 300px;
+    max-width: 90%;
+    padding: 20px;
+    background-color: #2F2F2F;
+    border-radius: 12px;
+    color: #dcdcdc;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.version-modal.visible {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.version-modal .modal-content {
+    position: relative;
+}
+
+.version-modal h2 {
+    margin-top: 0;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.version-modal ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.version-modal ul li {
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.version-modal ul li strong {
+    color: #ffffff;
+}
+
+.version-modal .close-modal-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    background: none;
+    border: none;
+    color: #8e8e8e;
+    cursor: pointer;
+}
+
+.version-modal .close-modal-btn:hover {
+    color: #ffffff;
+}
+
 
 /* Media Queries */
 @media screen and (max-width: 768px) {
