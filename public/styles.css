@@ -55,7 +55,6 @@ body {
     top: 0;
     left: 0;
     height: 100vh;
-    overflow-y: auto;
     transition: transform 0.3s ease;
 }
 
@@ -114,6 +113,9 @@ body {
 
 #chat-list {
     margin-top: 20px;
+    margin-bottom: 20px;
+    flex: 1; /* This allows the chat list to grow and fill space */
+    overflow-y: auto; /* Only chat list scrolls */
 }
 
 #chat-list::-webkit-scrollbar {
@@ -604,6 +606,11 @@ body {
     height: auto;
 }
 
+.message-content a {
+    color: #bababa;
+    text-decoration: underline;
+}
+
 @media screen and (min-width: 1400px) {
     .message.user,
     .message.assistant {
@@ -1028,6 +1035,7 @@ body {
     width: 100%;
     border-top: 1px solid #2a2a2a;
     background-color: #171717;
+    flex-shrink: 0;
 }
 
 .version-text {
