@@ -327,6 +327,29 @@ app.post('/api/chats/:id/rename', authMiddleware, async (req, res) => {
   }
 });
 
+app.post('/api/chats/:id/setmodel', authMiddleware, async (req, res) => {
+  try {
+    const chatId = req.params.id;
+    const { model } = req.body;
+
+    const chat = await Chat.findOneAndUpdate(
+      { _id: chatId, user: req.session.userId },
+      { model: model },
+      { new: true }
+    );
+
+    if (!chat) {
+      return res.status(404).json({ error: 'Chat not found.' });
+    }
+
+    res.json({ success: true, chat });
+  } catch (err) {
+    console.error('Error updating chat model:', err);
+    res.status(500).json({ error: 'An error occurred while updating the chat model.' });
+  }
+});
+
+
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

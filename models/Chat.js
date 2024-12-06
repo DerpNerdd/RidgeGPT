@@ -10,6 +10,7 @@ const ChatSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   title: { type: String },
   messages: [MessageSchema],
+  model: { type: String, default: 'gpt-4' } // Add this line
 }, { timestamps: true });
 
 module.exports = mongoose.model('Chat', ChatSchema);

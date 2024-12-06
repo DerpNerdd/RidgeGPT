@@ -10,6 +10,24 @@
     src: url(./Montserrat-VariableFont_wght.ttf);
 }
 
+html::-webkit-scrollbar {
+    width: 8px;
+}
+
+html::-webkit-scrollbar-track {
+    background: #1f1f1f;
+}
+
+html::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 4px;
+    border: 2px solid #1f1f1f;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+    background-color: #777;
+}
+
 body {
     margin: 0;
     font-family: "Montserrat", sans-serif;
@@ -1093,6 +1111,24 @@ body {
 
 .version-modal .close-modal-btn:hover {
     color: #ffffff;
+}
+
+code.hljs::-webkit-scrollbar {
+    height: 8px;
+}
+
+code.hljs::-webkit-scrollbar-track {
+    background: #1f1f1f;
+}
+
+code.hljs::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 4px;
+    border: 2px solid #1f1f1f;
+}
+
+code.hljs::-webkit-scrollbar-thumb:hover {
+    background-color: #777;
 }
 
 

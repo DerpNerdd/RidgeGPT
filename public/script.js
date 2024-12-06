@@ -323,31 +323,34 @@ modelSelectorModal.addEventListener('click', (e) => {
 function setModel(model) {
     currentModel = model;
     console.log('Model changed to:', currentModel);
-
-    // Update UI to reflect the selected model
     const displayName = modelDisplayNames[model] || model;
     document.getElementById('selected-model').textContent = displayName;
-}
-
-// Load chats on page load
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('DOM fully loaded and parsed');
-    await loadChats();
-
-    // Set the initial model display name
-    const displayName = modelDisplayNames[currentModel] || currentModel;
-    document.getElementById('selected-model').textContent = displayName;
-});
+  
+    // If we have a current chat, save the chosen model to the server
+    if (currentChatId) {
+      fetch(`/api/chats/${currentChatId}/setmodel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: currentModel })
+      }).then(response => {
+        if (!response.ok) {
+          console.error('Failed to update chat model on server');
+        }
+      }).catch(err => console.error('Error updating chat model:', err));
+    }
+  }
+  
 // Function to load chats
 async function loadChats() {
     try {
-        const response = await fetch('/api/chats?includeMessages=true');
+        const response = await fetch('/api/chats');
         if (response.ok) {
             const data = await response.json();
             if (data.success) {
                 const chats = data.chats;
-                chatsData = chats; // Store chats with messages
+                chatsData = chats; // Store chats locally
                 displayChatList(chats);
+
                 if (chats.length > 0) {
                     currentChatId = chats[0]._id;
                     await loadChat(currentChatId);
@@ -363,8 +366,6 @@ async function loadChats() {
     }
 }
 
-
-// Function to load a specific chat
 async function loadChat(chatId) {
     try {
         const response = await fetch(`/api/chats/${chatId}`);
@@ -373,8 +374,17 @@ async function loadChat(chatId) {
             if (data.success) {
                 const chat = data.chat;
                 conversation = chat.messages;
-                console.log('Loaded conversation:', conversation);
                 displayConversation(conversation);
+
+                // Update currentModel from the chat if available
+                if (chat.model) {
+                    currentModel = chat.model;
+                } else {
+                    currentModel = 'gpt-4'; // Default if not set
+                }
+
+                const displayName = modelDisplayNames[currentModel] || currentModel;
+                document.getElementById('selected-model').textContent = displayName;
             }
         } else {
             console.error('Failed to load chat messages');
@@ -383,6 +393,22 @@ async function loadChat(chatId) {
         console.error('Error loading chat messages:', err);
     }
 }
+
+function displayConversation(conversation) {
+    chatBox.innerHTML = '';
+    conversation.forEach(message => {
+      appendMessage(message.role, message.content);
+    });
+  
+    // After rendering is done
+    requestAnimationFrame(() => {
+      const lastMessage = chatBox.querySelector('.message:last-child');
+      if (lastMessage) {
+        lastMessage.scrollIntoView({ block: 'end', behavior: 'auto' });
+      }
+    });
+  }
+  
 
 
 function groupChatsByDate(chats) {
@@ -485,31 +511,6 @@ function highlightActiveChat() {
     });
 }
 
-// Function to load a specific chat
-async function loadChat(chatId) {
-    try {
-        const response = await fetch(`/api/chats/${chatId}`);
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-                const chat = data.chat;
-                conversation = chat.messages;
-                displayConversation(conversation);
-            }
-        } else {
-            console.error('Failed to load chat messages');
-        }
-    } catch (err) {
-        console.error('Error loading chat messages:', err);
-    }
-}
-
-function displayConversation(conversation) {
-    chatBox.innerHTML = '';
-    conversation.forEach(message => {
-        appendMessage(message.role, message.content);
-    });
-}
 
 async function createNewChat() {
     try {
@@ -570,10 +571,11 @@ const appendMessage = (role, content) => {
         // Process code blocks in the message content
         processCodeBlocks(messageContent);
     } else {
-        messageContent.textContent = decodedContent;
+        const parsedUserHTML = marked.parse(decodedContent);
+        messageContent.innerHTML = parsedUserHTML;
+        // If you'd like, also process code blocks for user messages
+        processCodeBlocks(messageContent);
     }
-
-    chatBox.scrollTop = chatBox.scrollHeight;
 };
 
 // Function to show typing indicator
@@ -1069,3 +1071,14 @@ function processCodeBlocks(container) {
         preBlock.parentElement.replaceChild(codeContainer, preBlock);
     });
 }
+
+// Load chats on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM fully loaded and parsed');
+    await loadChats();
+
+    // Set the initial model display name
+    const displayName = modelDisplayNames[currentModel] || currentModel;
+    document.getElementById('selected-model').textContent = displayName;
+});
+
